@@ -1,6 +1,6 @@
 # FractalLauncher
 
-                                        <a href="https://launcher.extremeteam.online">**Website**</a>
+<a href="https://launcher.extremeteam.online">                                              **Website**</a>
 
 FractalLauncher is a free, open-source Minecraft launcher written in Python, made by YouTuber **TheExtreme_Ray**. It supports both Microsoft and offline (cracked) accounts, and was built to be a replacement for TL — everything it had, and more.
 
