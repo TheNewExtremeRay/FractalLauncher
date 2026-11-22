@@ -1,0 +1,51 @@
+# JDK
+jdk/
+*.jdk
+
+# Python cache / bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# Build / packaging artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+develop-eggs/
+parts/
+sdist/
+var/
+wheels/
+*.spec
+
+# Logs
+*.log
+logs/
+authlib-injector.log
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Readme (ignored per request)
+README.md

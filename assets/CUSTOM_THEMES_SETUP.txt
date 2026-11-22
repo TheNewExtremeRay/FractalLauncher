@@ -1,0 +1,70 @@
+=====================================================================
+ FractalLauncher — Custom AI Themes Setup
+=====================================================================
+
+Custom Themes let you type a short description ("cyberpunk city at
+night", "cozy autumn cabin", "pastel cotton candy") and FractalLauncher
+will ask an AI (Cerebras) to invent a matching color palette for the
+whole app.
+
+---------------------------------------------------------------------
+1) GET A FREE CEREBRAS API KEY
+---------------------------------------------------------------------
+  1. Go to:  https://cloud.cerebras.ai
+  2. Sign up / log in (it's free).
+  3. Open the "API Keys" section of your dashboard.
+  4. Click "Create API Key" and copy it.
+     It will look something like:  csk-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+---------------------------------------------------------------------
+2) SAVE YOUR API KEY IN FractalLauncher
+---------------------------------------------------------------------
+  Easiest way (recommended):
+    - Open FractalLauncher -> Settings -> Custom Themes
+    - Click the "Set API Key" button
+    - Paste your key into the box and confirm
+
+  Manual way (if you prefer editing files directly):
+    - Your key lives in its own plain text file, completely separate
+      from the rest of the launcher's settings, so you never have to
+      dig through config.json to find it:
+
+          Windows:  %USERPROFILE%\.FractalLauncher\cerebras_api_key.txt
+          Mac/Linux: ~/.FractalLauncher/cerebras_api_key.txt
+
+    - If the file doesn't exist yet, just create it and paste your
+      key inside as the only line of text, then save.
+
+  Your key is never sent anywhere except directly to Cerebras'
+  official API (api.cerebras.ai) when you generate a theme.
+
+---------------------------------------------------------------------
+3) GENERATE A THEME
+---------------------------------------------------------------------
+  1. Open FractalLauncher -> Settings -> Custom Themes
+  2. In the "Describe your theme" box, type what you want. Examples:
+       - "deep space nebula, purple and teal"
+       - "warm cozy library, candlelight"
+       - "minimal clean light mode, soft blue accents"
+       - "retro 80s synthwave, hot pink and cyan"
+  3. Click "Generate Theme"
+  4. Wait a few seconds while the AI builds your palette.
+  5. Your new theme is automatically added to the Theme Preset
+     dropdown above (named "AI: <your description>") and applied.
+  6. Click "Save All Settings" so it's remembered on next launch.
+
+---------------------------------------------------------------------
+NOTES
+---------------------------------------------------------------------
+  - Generated themes are saved locally to:
+        ~/.FractalLauncher/custom_themes.json
+    so they persist across restarts and you don't need to regenerate
+    them every time.
+  - You can generate as many themes as you like — each one is added
+    to the dropdown as a new option, your old ones aren't overwritten.
+  - If generation fails, double check your API key and internet
+    connection. The error message shown in the launcher will tell you
+    what went wrong.
+  - Cerebras API usage may be subject to their free-tier rate limits.
+
+=====================================================================

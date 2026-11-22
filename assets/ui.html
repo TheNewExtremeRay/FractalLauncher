@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FractalLauncher v1.2.4 (Optimize Patch)</title>
+<script src="i18n.js"></script>
+<script src="lib/skinview3d.bundle.js" defer></script>
+<style>
+:root{--bg:#0d0f13;--panel:#13161c;--card:#1a1d24;--card-h:#22262e;--accent:#5865f2;--glow:rgba(88,101,242,.4);--ah:#4752c4;--tp:#fff;--ts:#a0a8b8;--tm:#4a5060;--border:#2a2d35;--ok:#3ba55c;--warn:#faa61a;--err:#ed4245;--r:10px;--t:all .2s cubic-bezier(.25,.46,.45,.94)}
+*{box-sizing:border-box;outline:none;margin:0;padding:0}
+body{background:var(--bg);color:var(--tp);font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;height:100vh;overflow:hidden;display:flex;user-select:none}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--card);border-radius:3px}
+#app{display:flex;width:100%;height:100%}
+
+/* SIDEBAR LEFT */
+.sl{width:60px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding-top:16px;z-index:10;flex-shrink:0}
+.ni{width:38px;height:38px;margin-bottom:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ts);cursor:pointer;transition:var(--t);position:relative}
+.ni:hover{color:var(--tp);background:rgba(255,255,255,.05)}
+.ni.active{color:#fff;background:var(--accent);box-shadow:0 0 14px var(--glow)}
+.ni svg{width:18px;height:18px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.ssp{flex-grow:1}
+.logo{padding:12px 0;display:flex;flex-direction:column;align-items:center;gap:2px}
+.logo span{font-size:20px}
+.logo small{font-size:8px;color:var(--tm);letter-spacing:1px;font-weight:700}
+
+/* MAIN */
+.mc{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.page{display:none;padding:24px;overflow-y:auto;flex:1;animation:fi .2s ease}
+.page.active{display:flex;flex-direction:column;gap:16px}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* STATUS BAR */
+.sb{border-top:1px solid var(--border);padding:8px 20px;background:var(--panel);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--tm);flex-shrink:0}
+.dot{width:7px;height:7px;background:var(--ok);border-radius:50%;display:inline-block;margin-right:5px;box-shadow:0 0 6px var(--ok)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;transition:var(--t)}
+.card:hover{border-color:var(--tm)}
+.row{display:flex;gap:12px;align-items:center}
+.col{display:flex;flex-direction:column;gap:10px}
+h1{font-size:22px;font-weight:700}
+h2{font-size:18px;font-weight:700}
+h3{font-size:14px;font-weight:600;color:var(--ts)}
+.muted{color:var(--tm);font-size:12px}
+.sec{color:var(--ts);font-size:13px}
+
+/* BUTTONS */
+.btn{background:var(--accent);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-weight:600;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:13px;font-family:inherit}
+.btn:hover{background:var(--ah);transform:translateY(-1px);box-shadow:0 4px 12px var(--glow)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-s{background:var(--card);border:1px solid var(--border);color:var(--tp)}
+.btn-s:hover{background:var(--card-h);border-color:var(--tm);box-shadow:none;transform:none}
+.btn-ok{background:linear-gradient(90deg,#3ba55c,#2d8647);box-shadow:0 4px 14px rgba(59,165,92,.3)}
+.btn-ok:hover{background:linear-gradient(90deg,#46c46d,#3ba55c)}
+.btn-d{background:rgba(237,66,69,.1);color:var(--err);border:1px solid rgba(237,66,69,.2)}
+.btn-d:hover{background:var(--err);color:#fff}
+.btn-lg{padding:13px 28px;font-size:15px}
+
+/* BADGE */
+.badge{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;text-transform:uppercase}
+.b-p{background:rgba(88,101,242,.2);color:#8b9dff}
+.b-g{background:rgba(59,165,92,.2);color:#6fd68a}
+.b-r{background:rgba(237,66,69,.2);color:#ff8b8c}
+.b-y{background:rgba(250,166,26,.2);color:#ffd080}
+
+/* INPUTS */
+.inp{background:var(--bg);border:1px solid var(--border);color:#fff;padding:9px 13px;border-radius:8px;width:100%;font-family:inherit;font-size:13px;transition:var(--t)}
+.inp::placeholder{color:var(--tm);opacity:1}
+.inp:focus{border-color:var(--accent)}
+select.inp option{background:var(--card)}
+
+/* TOGGLE */
+.tgl{width:36px;height:20px;background:var(--tm);border-radius:20px;position:relative;cursor:pointer;transition:var(--t);flex-shrink:0}
+.tgl.on{background:var(--ok)}
+.tgl::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s}
+.tgl.on::after{left:18px}
+
+/* PROGRESS */
+.prog-wrap{height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.prog{height:100%;background:var(--accent);width:0;transition:width .2s}
+
+/* GRID LAYOUTS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;max-width:100%}
+.panel-left{width:240px;flex-shrink:0}
+.flex{display:flex;gap:12px}
+.flex-1{flex:1;min-width:0}
+.flex-col{display:flex;flex-direction:column;gap:10px}
+
+/* HOME PAGE */
+.hero{position:relative;background:linear-gradient(135deg,#1a1d24 0%,#13161c 100%);border-radius:var(--r);padding:26px;overflow:hidden;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+#particles{position:absolute;inset:0;opacity:.4;pointer-events:none}
+.hero-info{position:relative;z-index:2}
+.hero-title{font-size:26px;font-weight:700;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.hero-meta{display:flex;gap:12px;color:var(--ts);font-size:13px;align-items:center}
+.action-card{cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:16px;position:relative;user-select:none}
+.card.action-card:hover{border-color:var(--accent);background:var(--card-h);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.card.action-card:active{transform:translateY(0);box-shadow:none}
+.card.action-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.action-card .iac{font-size:22px}
+.action-card h3{font-size:15px;font-weight:600;color:var(--tp)}
+.action-card .aca{margin-top:auto;padding-top:10px;font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.02em;transition:var(--t)}
+.action-card .aca-arrow{display:inline-block;transition:var(--t)}
+.card.action-card:hover .aca-arrow{transform:translateX(4px)}
+.news-row{padding:13px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.news-row:last-child{border-bottom:none;padding-bottom:0}
+
+/* SKINS PAGE */
+.skin-preview{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#232730 0%,#13161c 70%);min-height:280px;border-radius:var(--r)}
+.file-drop{border:2px dashed var(--border);border-radius:var(--r);padding:28px;text-align:center;cursor:pointer;transition:var(--t)}
+.file-drop:hover,.file-drop.drag{border-color:var(--accent);background:rgba(88,101,242,.05)}
+.model-toggle{display:flex;background:var(--bg);padding:3px;border-radius:8px;width:fit-content}
+.mt-btn{padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--ts);transition:var(--t);border:none;background:transparent;font-family:inherit}
+.mt-btn.active{background:var(--card);color:var(--tp)}
+
+/* MODS PAGE */
+.mod-installed{overflow-y:auto;max-height:calc(100vh - 180px)}
+.mod-item{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid var(--border);font-size:13px;gap:8px}
+.mod-item:last-child{border-bottom:none}
+.mod-card{display:flex;flex-direction:column;gap:8px}
+.mod-card-header{display:flex;gap:10px;align-items:flex-start}
+.mod-icon{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--bg)}
+.mod-card .mc-title{font-weight:600;font-size:13px}
+.mod-card .mc-auth{font-size:11px;color:var(--ts)}
+.mod-card .mc-desc{font-size:11px;color:var(--tm);flex:1}
+.src-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(88,101,242,.2);color:#8b9dff}
+.pag{display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 0}
+
+/* CONSOLE PAGE */
+.console-wrap{display:flex;flex-direction:column;flex:1;background:#0a0a0a;border:1px solid var(--border);border-radius:var(--r);font-family:'Consolas','Monaco',monospace;font-size:12px;min-height:0}
+.console-tb{padding:8px 12px;border-bottom:1px solid #1a1a1a;background:#111;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.console-out{flex:1;padding:12px;overflow-y:auto;color:#c8f0c8;line-height:1.6;user-select:text;-webkit-user-select:text;cursor:text}
+.log-w{color:#faa61a}.log-e{color:#ff4444}.log-c{color:#ff2222;background:#1a0000;display:block}.log-i{color:#c8f0c8}
+
+/* SETTINGS PAGE */
+.form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.form-row label{font-size:12px;color:var(--ts)}
+.form-row-h{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.form-row-h:last-child{border-bottom:none;padding-bottom:0}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:14px;width:14px;border-radius:50%;background:var(--accent);cursor:pointer;margin-top:-5px}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--border);border-radius:2px}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--card);width:420px;border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,.5);animation:fi .15s ease}
+.modal h2{margin-bottom:14px}
+.ver-list{max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:14px}
+.ver-item{padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;transition:var(--t)}
+.ver-item:hover{background:var(--card-h)}
+.ver-item.sel{background:rgba(88,101,242,.15);color:var(--accent)}
+.ver-item:last-child{border-bottom:none}
+
+/* TOOLTIP */
+#tip{position:fixed;background:#000;color:#fff;padding:4px 9px;border-radius:4px;font-size:11px;pointer-events:none;opacity:0;transition:opacity .1s;z-index:200;border:1px solid var(--border)}
+
+/* ONBOARDING — product-tour spotlight */
+#onboarding{position:fixed;inset:0;z-index:50;display:none;pointer-events:none}
+#onb-dt,#onb-dl,#onb-dr,#onb-db{position:fixed;background:rgba(0,0,0,.62);pointer-events:auto;transition:left .2s ease,top .2s ease,width .2s ease,height .2s ease}
+.onb-ring{position:fixed;pointer-events:none;border:2px solid var(--accent);border-radius:9px;box-shadow:0 0 0 4px rgba(88,101,242,.28),0 0 20px rgba(88,101,242,.4);transition:left .2s ease,top .2s ease,width .2s ease,height .2s ease;z-index:2}
+.onb-card{position:fixed;pointer-events:auto;left:-9999px;top:-9999px;background:var(--card);border:1px solid var(--border);border-radius:14px;width:340px;max-width:calc(100vw - 28px);box-shadow:0 18px 60px rgba(0,0,0,.6);display:none;flex-direction:column;max-height:74vh;overflow:visible;z-index:9999;transition:left .2s ease,top .2s ease}
+.onb-arrow{position:absolute;width:0;height:0;border-style:solid;display:none;z-index:1}
+.onb-arrow.a-left{left:-12px;border-width:7px 13px 7px 0;border-color:transparent var(--card) transparent transparent}
+.onb-arrow.a-right{right:-12px;border-width:7px 0 7px 13px;border-color:transparent transparent transparent var(--card)}
+.onb-arrow.a-top{top:-12px;border-width:0 7px 13px 7px;border-color:transparent transparent var(--card) transparent}
+.onb-arrow.a-bottom{bottom:-12px;border-width:13px 7px 0 7px;border-color:var(--card) transparent transparent transparent}
+.onb-head{display:flex;align-items:center;gap:10px;padding:16px 18px 0}
+.onb-logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7c5cff);display:flex;align-items:center;justify-content:center;flex:none}
+.onb-logo svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.onb-brand{font-weight:700;font-size:14px}
+.onb-count{margin-left:auto;font-size:11px;color:var(--ts)}
+.onb-body{padding:12px 18px 2px;flex:1;overflow-y:auto}
+.onb-slide{display:none}
+.onb-slide h3{font-size:16px;margin-bottom:7px}
+.onb-slide p{font-size:12.5px;color:var(--ts);line-height:1.55}
+.onb-tour{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.onb-tour .ot{border:1px solid var(--border);border-radius:8px;padding:9px 6px;text-align:center;font-size:10.5px;color:var(--ts);background:var(--panel)}
+.onb-tour .ot svg{width:17px;height:17px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:0 auto 4px;display:block}
+.onb-foot{display:flex;align-items:center;gap:10px;padding:12px 18px 6px}
+.onb-skip{display:block;width:100%;text-align:center;padding:0 0 12px;font-size:11px;color:var(--ts);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:inherit}
+.onb-skip:hover{color:var(--tm)}
+
+/* PROFILE PAGE */
+.profile-card{display:flex;justify-content:space-between;align-items:center;padding:14px 16px}
+.profile-card.active-p{border-color:var(--accent);background:rgba(88,101,242,.05)}
+
+/* DIAGNOSTICS */
+.diag-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.diag-row:last-child{border-bottom:none}
+.diag-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0;margin-top:1px}
+.ico{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
+i[data-ic]{display:inline-flex;align-items:center;justify-content:center;vertical-align:-3px}
+
+.diag-label{font-size:13px;font-weight:600}
+.diag-detail{font-size:11px;color:var(--tm);margin-top:2px;word-break:break-word}
+.diag-group{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tm);padding:16px 0 4px;border-bottom:1px solid var(--border);margin-bottom:2px;display:flex;align-items:center;gap:6px}
+.diag-group:first-child{padding-top:2px}
+.diag-row .diag-fix{font-size:10px;padding:3px 10px;flex-shrink:0;margin-top:1px}
+.diag-sum{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.diag-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:#12161d;border:1px solid var(--border)}
+
+/* SCREENSHOTS */
+.ss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.ss-card{border-radius:8px;overflow:hidden;cursor:pointer;position:relative}
+.ss-card img{width:100%;height:120px;object-fit:cover;display:block;background:var(--card)}
+	.ss-card .ss-name{padding:6px 8px;font-size:11px;color:var(--ts);background:var(--card);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+	
+	/* SCREENSHOT EDITOR */
+	.editor-canvas-container { position: relative; background: #000; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 400px; margin-bottom: 16px; }
+	#editor-canvas { max-width: 100%; max-height: 70vh; cursor: crosshair; }
+	.editor-toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; background: var(--panel); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
+	.tool-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--ts); cursor: pointer; font-size: 12px; transition: var(--t); display: flex; align-items: center; gap: 5px; }
+	.tool-btn:hover { background: var(--card-h); color: var(--tp); }
+	.tool-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+	
+	/* CAPE GRID */
+.cape-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;max-height:300px;overflow-y:auto}
+.cape-card{border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:var(--t);text-align:center}
+.cape-card:hover{border-color:var(--accent)}
+.cape-card.sel{border-color:var(--accent);background:rgba(88,101,242,.1)}
+.cape-card img{width:100%;height:70px;object-fit:contain;background:#1a1d24;padding:4px}
+.cape-card span{display:block;font-size:10px;color:var(--ts);padding:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ACCOUNTS */
+.acc-card{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.acc-card.active-a{border-color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LEFT SIDEBAR (icon-only) -->
+<nav class="sl">
+  <div class="logo"><span><i data-ic="zap" data-s="20"></i></span><small>FL</small></div>
+  <div class="ni active" data-p="home" title="Home" data-i18n-title="home"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+  <div class="ni" data-p="profiles" title="Profiles" data-i18n-title="profiles"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+  <div class="ni" data-p="accounts" title="Accounts" data-i18n-title="accounts"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+  <div class="ni" data-p="skins" title="Skins" data-i18n-title="skins"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></div>
+  <div class="ni" data-p="mods" title="Mods" data-i18n-title="mods"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+  <div class="ni" data-p="shaders" title="Shaders" data-i18n-title="shaders"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></div>
+  <div class="ni" data-p="resourcepacks" title="Resource Packs" data-i18n-title="resourcepacks"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
+  <div class="ssp"></div>
+  <div class="ni" data-p="screenshots" title="Screenshots" data-i18n-title="screenshots"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+  <div class="ni" data-p="backups" title="Backups" data-i18n-title="backups"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
+  <div class="ni" data-p="diagnostics" title="Diagnostics" data-i18n-title="diagnostics"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+  <div class="ni" data-p="console" title="Console" data-i18n-title="console"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>
+  <div class="ni" data-p="settings" title="Settings" data-i18n-title="settings" style="margin-bottom:12px"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="mc">
+
+<!-- ═══ HOME ═══ -->
+<div id="pg-home" class="page active">
+  <div class="hero">
+    <canvas id="particles"></canvas>
+    <div class="hero-info">
+      <div class="hero-title">
+        <span class="badge b-p" id="h-loader-badge">Loading...</span>
+        <span id="h-profile-name" data-i18n="no_profile">No Profile</span>
+      </div>
+      <div class="hero-meta">
+        <span id="h-account" data-i18n="no_account">No Account</span>
+        <span>•</span>
+        <span id="h-ram">— MB RAM</span>
+        <span>•</span>
+        <span id="h-status" data-i18n="ready" style="color:var(--ok)">Ready</span>
+      </div>
+      <div id="h-install-row" style="display:none;margin-top:10px">
+        <div style="font-size:12px;color:var(--ts);margin-bottom:4px" id="h-install-status">Installing...</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+          <div class="prog-wrap" style="flex:1"><div class="prog" id="h-install-prog"></div></div>
+          <span style="font-size:12px;color:var(--accent);font-weight:600;min-width:38px;text-align:right" id="h-install-pct">0%</span>
+        </div>
+        <div style="display:flex;gap:16px;font-size:11px;color:var(--tm)">
+          <span id="h-install-mb">0 MB / 0 MB</span>
+          <span id="h-install-speed">—</span>
+          <span id="h-install-eta">—</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;position:relative;z-index:2">
+      <select class="inp" id="h-profile-sel" style="width:180px" onchange="quickSelectProfile(this.value)"></select>
+      <button class="btn btn-ok btn-lg" id="h-play-btn" onclick="doLaunch()"><i data-ic="play" data-s="14"></i> &nbsp;<span data-i18n="launch">Launch</span></button>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card action-card" role="button" tabindex="0" onclick="goto('profiles')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goto('profiles')}"><div class="iac"><i data-ic="box" data-s="22"></i></div><h3 data-i18n="profiles">Profiles</h3><p class="sec" data-i18n="profiles_desc">Manage versions & loaders</p><span class="aca"><span data-i18n="open">Open</span> <span class="aca-arrow">→</span></span></div>
+    <div class="card action-card" role="button" tabindex="0" onclick="goto('accounts')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goto('accounts')}"><div class="iac"><i data-ic="key" data-s="22"></i></div><h3 data-i18n="accounts">Accounts</h3><p class="sec" data-i18n="accounts_desc">Switch or add players</p><span class="aca"><span data-i18n="open">Open</span> <span class="aca-arrow">→</span></span></div>
+    <div class="card action-card" role="button" tabindex="0" onclick="goto('mods')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goto('mods')}"><div class="iac"><i data-ic="layers" data-s="22"></i></div><h3 data-i18n="mods">Mods</h3><p class="sec" data-i18n="mods_desc">Browse & install mods</p><span class="aca"><span data-i18n="open">Open</span> <span class="aca-arrow">→</span></span></div>
+  </div>
+</div>
+
+<!-- ═══ PROFILES ═══ -->
+<div id="pg-profiles" class="page">
+  <div class="row" style="justify-content:space-between">
+    <h1 data-i18n="profiles">Profiles</h1>
+    <button class="btn" id="btn-new-profile" onclick="showCreateProfile()" data-i18n="new_profile">+ New Profile</button>
+  </div>
+  <div id="profiles-list" class="flex-col"></div>
+</div>
+
+<!-- ═══ ACCOUNTS ═══ -->
+<div id="pg-accounts" class="page">
+  <div class="row" style="justify-content:space-between">
+    <h1 data-i18n="accounts">Accounts</h1>
+    <button class="btn" id="btn-add-account" onclick="showAddAccount()" data-i18n="add_account">+ Add Account</button>
+  </div>
+  <div id="accounts-list" class="flex-col"></div>
+</div>
+
+<!-- ═══ SKINS ═══ -->
+<div id="pg-skins" class="page">
+  <h1 data-i18n="skin_manager">Skin Manager</h1>
+  <div class="flex" style="align-items:flex-start">
+    <div class="card skin-preview panel-left">
+      <div id="skin-3d" style="width:200px;height:280px;margin:0 auto;">
+        <canvas id="skin-canvas"></canvas>
+      </div>
+      <div class="muted" style="text-align:center;margin-top:10px" id="skin-model-lbl">Classic</div>
+    </div>
+    <div class="flex-col flex-1">
+      <div class="card">
+        <h3 style="margin-bottom:12px" data-i18n="upload_skin">Upload Skin</h3>
+        <div class="file-drop" id="skin-drop" onclick="browseSkin()">
+          <div style="margin-bottom:8px"><i data-ic="folder" data-s="28"></i></div>
+          <div style="font-weight:600;font-size:14px">Click to browse</div>
+          <div class="muted">.PNG files only</div>
+        </div>
+        <div id="skin-current" class="muted" style="margin-top:8px;font-size:11px"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:10px" data-i18n="model_type">Model Type</h3>
+        <div class="model-toggle">
+          <button class="mt-btn active" onclick="setSkinModel('default',this)" data-i18n="classic">Classic</button>
+          <button class="mt-btn" onclick="setSkinModel('slim',this)" data-i18n="slim">Slim</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:10px" data-i18n="cape">Cape</h3>
+        <div class="row" style="margin-bottom:10px">
+          <button class="btn btn-s flex-1" onclick="browseCape()"><i data-ic="folder" data-s="13"></i> <span data-i18n="browse">Browse</span></button>
+          <button class="btn btn-s flex-1" onclick="showCapeModal()"><i data-ic="layers" data-s="13"></i> <span data-i18n="presets">Presets</span></button>
+          <button class="btn btn-d" onclick="clearCape()"><i data-ic="x" data-s="14"></i></button>
+        </div>
+        <div id="cape-current" class="muted" style="font-size:11px"></div>
+      </div>
+      <button class="btn btn-ok" onclick="saveSkin()"><i data-ic="save" data-s="13"></i> <span data-i18n="save_to_account">Save to Account</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODS ═══ -->
+<div id="pg-mods" class="page">
+  <div class="row" style="justify-content:space-between">
+    <h1>Mods</h1>
+    <button class="btn btn-s" onclick="openModsFolder()"><i data-ic="folder-open" data-s="13"></i> Open Folder</button>
+  </div>
+  <div class="flex" style="align-items:flex-start;flex:1;min-height:0">
+    <div class="card panel-left" style="display:flex;flex-direction:column">
+      <div class="row" style="justify-content:space-between;margin-bottom:10px">
+        <h3>Installed</h3>
+        <span class="badge b-p" id="mod-count">0</span>
+      </div>
+      <div class="mod-installed flex-1" id="installed-mods"></div>
+    </div>
+    <div class="flex-col flex-1">
+      <div class="row">
+        <input type="text" class="inp flex-1" id="mod-search" placeholder="Search mods..." oninput="debounceModSearch()">
+      </div>
+      <div class="g-auto" id="mod-results"><div class="muted" style="grid-column:1/-1;padding:20px;text-align:center">Search for mods above</div></div>
+      <div class="pag">
+        <button class="btn btn-s" id="mod-prev" onclick="modPage(-1)" disabled><i data-ic="chevron-left" data-s="13"></i> Back</button>
+        <span class="muted" id="mod-page-lbl">Page 1</span>
+        <button class="btn btn-s" id="mod-next" onclick="modPage(1)" disabled>Next <i data-ic="chevron-right" data-s="13"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SHADERS ═══ -->
+<div id="pg-shaders" class="page">
+  <div class="row" style="justify-content:space-between"><h1>Shaders</h1><button class="btn btn-s" onclick="openShadersFolder()"><i data-ic="folder-open" data-s="13"></i> Open Folder</button></div>
+  <div class="flex" style="align-items:flex-start;flex:1">
+    <div class="card panel-left"><h3 style="margin-bottom:10px">Installed</h3><div id="shaders-installed" class="muted">None installed</div></div>
+    <div class="flex-col flex-1">
+      <div class="row">
+        <input type="text" class="inp flex-1" id="shader-search" placeholder="Search shaders..." oninput="debounceShaderSearch()">
+      </div>
+      <div class="g-auto" id="shader-results"><div class="muted" style="grid-column:1/-1;padding:20px;text-align:center">Search for shaders above</div></div>
+      <div class="pag">
+        <button class="btn btn-s" id="sh-prev" onclick="shaderPage(-1)" disabled><i data-ic="chevron-left" data-s="13"></i> Back</button>
+        <span class="muted" id="sh-page-lbl">Page 1</span>
+        <button class="btn btn-s" id="sh-next" onclick="shaderPage(1)" disabled>Next <i data-ic="chevron-right" data-s="13"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESOURCE PACKS ═══ -->
+<div id="pg-resourcepacks" class="page">
+  <div class="row" style="justify-content:space-between"><h1>Resource Packs</h1><button class="btn btn-s" onclick="openRPFolder()"><i data-ic="folder-open" data-s="13"></i> Open Folder</button></div>
+  <div class="flex" style="align-items:flex-start;flex:1">
+    <div class="card panel-left"><h3 style="margin-bottom:10px">Installed</h3><div id="rp-installed" class="muted">None installed</div></div>
+    <div class="flex-col flex-1">
+      <div class="row">
+        <input type="text" class="inp flex-1" id="rp-search" placeholder="Search resource packs..." oninput="debounceRPSearch()">
+      </div>
+      <div class="g-auto" id="rp-results"><div class="muted" style="grid-column:1/-1;padding:20px;text-align:center">Search for resource packs above</div></div>
+      <div class="pag">
+        <button class="btn btn-s" id="rp-prev" onclick="rpPage(-1)" disabled><i data-ic="chevron-left" data-s="13"></i> Back</button>
+        <span class="muted" id="rp-page-lbl">Page 1</span>
+        <button class="btn btn-s" id="rp-next" onclick="rpPage(1)" disabled>Next <i data-ic="chevron-right" data-s="13"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HOSTING ═══ -->
+<div id="pg-hosting" class="page">
+  <h1 data-i18n="host_world">Host World</h1>
+  <div class="card">
+    <h3 data-i18n="quick_lan_guide">Quick LAN Server Guide</h3>
+    <p class="sec" style="margin-top:8px;line-height:1.7"><span data-i18n="to_host">To host for friends on the internet:</span><br>1. <span data-i18n="install_papermc">Install PaperMC or vanilla server jar</span><br>2. <span data-i18n="use_playit">Use Playit.gg for free tunneling (no port forwarding needed)</span><br>3. <span data-i18n="share_tunnel">Share the tunnel address with friends</span></p>
+    <div class="row" style="margin-top:14px;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-s" onclick="openUrl('https://papermc.io')">PaperMC</button>
+      <button class="btn btn-s" onclick="openUrl('https://playit.gg')">Playit.gg</button>
+      <button class="btn btn-s" onclick="openUrl('https://whatismyip.com')">My IP</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREENSHOTS ═══ -->
+<div id="pg-screenshots" class="page">
+  <div class="row" style="justify-content:space-between">
+    <h1 data-i18n="screenshots">Screenshots</h1>
+    <button class="btn btn-s" onclick="refreshScreenshots()"><i data-ic="refresh" data-s="13"></i> <span data-i18n="refresh">Refresh</span></button>
+  </div>
+  <div class="ss-grid" id="screenshots-grid"><div class="muted">No screenshots found</div></div>
+</div>
+
+<!-- ═══ BACKUPS ═══ -->
+<div id="pg-backups" class="page">
+  <div class="row" style="justify-content:space-between">
+    <h1 data-i18n="backups">Backups</h1>
+    <button class="btn btn-ok" onclick="doBackup()"><i data-ic="save" data-s="13"></i> <span data-i18n="backup_now">Backup Now</span></button>
+  </div>
+  <div id="backup-status" class="muted"></div>
+  <div id="backups-list" class="flex-col"></div>
+</div>
+
+<!-- ═══ DIAGNOSTICS ═══ -->
+<div id="pg-diagnostics" class="page">
+  <div class="row" style="justify-content:space-between">
+    <h1 data-i18n="diagnostics">Diagnostics</h1>
+    <div class="row" style="gap:8px">
+      <button class="btn btn-s" onclick="copyDiagReport()"><i data-ic="clipboard" data-s="13"></i> <span data-i18n="diag_copy_report">Copy Report</span></button>
+      <button class="btn btn-s" id="diag-run-btn" onclick="runDiagnostics()"><i data-ic="play" data-s="13"></i> <span data-i18n="run_checks">Run Checks</span></button>
+    </div>
+  </div>
+  <div id="diag-summary" class="diag-sum" style="display:none"></div>
+  <div class="card" id="diag-results"><div class="muted" data-i18n="diag_placeholder">Click "Run Checks" to scan system, Java, Minecraft, network &amp; launcher health</div></div>
+</div>
+
+<!-- ═══ CONSOLE ═══ -->
+<div id="pg-console" class="page">
+  <h1 data-i18n="console">Console</h1>
+  <div class="console-wrap">
+    <div class="console-tb">
+      <div class="row" style="gap:8px">
+        <button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="copyLog()"><i data-ic="clipboard" data-s="13"></i> <span data-i18n="copy_log">Copy Log</span></button>
+        <button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="openLogsFolder()"><i data-ic="folder" data-s="13"></i> <span data-i18n="logs_folder">Logs Folder</span></button>
+        <button id="kill-btn" class="btn btn-s" style="font-size:11px;padding:5px 10px;display:none;background:#c73e1d" onclick="killGame()"><i data-ic="alert-triangle" data-s="13"></i> <span data-i18n="kill_game">Kill Game</span></button>
+      </div>
+      <button class="btn btn-d" style="font-size:11px;padding:5px 10px" onclick="clearConsole()" data-i18n="clear">Clear</button>
+    </div>
+    <div id="console-install-bar" style="display:none;padding:8px 12px;border-bottom:1px solid #1a1a1a;background:#0d1117">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span id="c-install-status" style="font-size:11px;color:#8b949e">Installing...</span>
+        <span id="c-install-pct" style="font-size:11px;color:var(--accent);font-weight:600">0%</span>
+      </div>
+      <div class="prog-wrap" style="height:4px"><div class="prog" id="c-install-prog" style="background:linear-gradient(90deg,var(--accent),#8b9dff)"></div></div>
+      <div style="display:flex;gap:16px;margin-top:4px;font-size:10px;color:#484f58">
+        <span id="c-install-mb">0 MB / 0 MB</span>
+        <span id="c-install-speed">—</span>
+        <span id="c-install-eta">—</span>
+      </div>
+    </div>
+    <div class="console-out" id="console-out">
+      <span class="log-i">FractalLauncher Console — ready.</span><br>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS ═══ -->
+<div id="pg-settings" class="page">
+  <h1 data-i18n="settings">Settings</h1>
+  <div class="g2">
+    <div class="card">
+      <h3 style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)" data-i18n="appearance">Appearance</h3>
+      <div class="form-row"><label data-i18n="language">Language</label>
+        <select class="inp" id="cfg-lang" onchange="onLanguageChange(this.value)">
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+          <option value="pt">Português</option>
+          <option value="de">Deutsch</option>
+          <option value="pirate">Pirate</option>
+          <option value="darija">Darija</option>
+        </select>
+      </div>
+      <div class="form-row"><label data-i18n="theme">Theme</label>
+<select class="inp" id="cfg-theme" onchange="previewTheme(this.value)">
+        <option value="Lunar">Lunar</option>
+        <option value="Cyber">Cyber</option>
+        <option value="Forest">Forest</option>
+        <option value="Eclipse">Eclipse</option>
+        <option value="Sun">Sun</option>
+        <option value="Amber">Amber</option>
+        <option value="Nebula">Nebula</option>
+        <option value="Matrix">Matrix</option>
+        <option value="Glass">Glass</option>
+        <option value="Dark">Dark</option>
+        <option value="Ocean">Ocean</option>
+        <option value="Crimson">Crimson</option>
+        <option value="Aurora">Aurora</option>
+        <option value="Grid">Grid</option>
+        <option value="Abyss">Abyss</option>
+        <option value="Green">Green</option>
+        <option value="Pink">Pink</option>
+        <option value="Onyx">Onyx</option>
+        <option value="Ice">Ice</option>
+        <option value="Gold">Gold</option>
+      </select>
+      </div>
+      <div class="form-row">
+        <label data-i18n="custom_themes">Custom Themes:</label>
+        <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn btn-s" onclick="openThemeEditor()"><i data-ic="droplet" data-s="13"></i> <span>Theme Editor</span></button>
+          <button class="btn btn-s" onclick="exportTheme()"><i data-ic="upload" data-s="13"></i> <span data-i18n="export">Export</span></button>
+          <button class="btn btn-s" onclick="importTheme()"><i data-ic="download" data-s="13"></i> <span data-i18n="import">Import</span></button>
+        </div>
+        <div class="muted" id="custom-theme-status" style="margin-top:8px;font-size:12px"></div>
+      </div>
+      <div class="form-row" style="border-top:1px solid var(--border);padding-top:14px">
+        <label>Fonts</label>
+        <div class="row">
+          <select class="inp flex-1" id="cfg-font" onchange="applyFontFromSelect(this.value)">
+            <optgroup label="Presets" id="font-presets"></optgroup>
+            <optgroup label="Uploaded" id="font-uploaded"></optgroup>
+          </select>
+          <button class="btn btn-s" onclick="uploadFont()"><i data-ic="upload" data-s="13"></i> Upload</button>
+        </div>
+        <div id="uploaded-fonts-list" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)" data-i18n="launcher">Launcher</h3>
+      <div class="form-row"><label data-i18n="mc_dir">Default Minecraft Directory</label>
+        <div class="row"><input type="text" class="inp flex-1" id="cfg-mc-dir"><button class="btn btn-s" onclick="browseMcDir()" data-i18n="browse">Browse</button></div>
+      </div>
+      <div class="form-row-h"><span class="sec" data-i18n="hide_launcher">Hide launcher while game runs</span><div class="tgl on" id="cfg-hide-tgl" onclick="toggleHide()"></div></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">Java</h3>
+      <div class="form-row"><label data-i18n="mem_alloc">Memory Allocation (RAM)</label>
+        <div class="row"><span class="muted">2 GB</span><input type="range" id="cfg-ram" min="1024" max="16384" step="512" value="4096" oninput="updateRamLabel()"><span class="muted">16 GB</span></div>
+        <div style="text-align:right;font-size:13px;color:var(--accent);font-weight:700" id="cfg-ram-lbl">4096 MB</div>
+      </div>
+      <div class="form-row"><label data-i18n="java_exec">Java Executable</label>
+        <div class="row"><input type="text" class="inp flex-1" id="cfg-java"><button class="btn btn-s" onclick="browseJava()" data-i18n="browse">Browse</button></div>
+      </div>
+      <div class="form-row"><label data-i18n="authlib_path">AuthLib-Injector Path</label>
+        <div class="row"><input type="text" class="inp flex-1" id="cfg-authlib"><button class="btn btn-s" onclick="browseAuthlib()" data-i18n="browse">Browse</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)" data-i18n="about">About</h3>
+      <div class="form-row-h"><span class="sec" data-i18n="version">Version</span><span class="muted">FractalLauncher v1.2.4 (Optimize Patch)</span></div>
+      <div class="form-row-h" style="border:none"><span class="sec" data-i18n="build">Build</span><span class="muted">pywebview UI</span></div>
+    </div>
+  </div>
+  <button class="btn btn-ok" style="width:fit-content" onclick="saveSettings()"><i data-ic="save" data-s="13"></i> <span data-i18n="save_settings">Save Settings</span></button>
+</div>
+
+</div><!-- /main content -->
+
+<!-- STATUS BAR -->
+<div class="sb">
+  <div><span class="dot"></span><span id="sb-status">Ready</span></div>
+  <div>| FractalLauncher v1.2.4 (Optimize Patch)</div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Screenshot Editor Modal -->
+<div class="overlay" id="modal-editor">
+  <div class="modal" style="width: 90%; max-width: 1000px;">
+    <div class="row" style="justify-content:space-between; margin-bottom: 14px;">
+      <h2>Edit Screenshot</h2>
+      <button class="btn btn-d" onclick="closeModal('modal-editor')"><i data-ic="x" data-s="14"></i></button>
+    </div>
+    
+    <div class="editor-toolbar">
+      <button class="tool-btn active" id="tool-crop" onclick="setEditorTool('crop')"><i data-ic="scissors" data-s="13"></i> Crop</button>
+      <button class="tool-btn" id="tool-blur" onclick="setEditorTool('blur')"><i data-ic="droplet" data-s="13"></i> Blur</button>
+      <button class="tool-btn" id="tool-draw" onclick="setEditorTool('draw')"><i data-ic="edit" data-s="13"></i> Draw</button>
+      <div style="width: 1px; background: var(--border); margin: 0 4px;"></div>
+      <button class="tool-btn" onclick="resetEditor()"><i data-ic="refresh" data-s="13"></i> Reset</button>
+    </div>
+
+    <div class="editor-canvas-container">
+      <canvas id="editor-canvas"></canvas>
+    </div>
+
+    <div class="row" style="justify-content:flex-end; gap: 10px;">
+      <button class="btn btn-s" onclick="closeModal('modal-editor')">Cancel</button>
+      <button class="btn btn-ok" onclick="saveEditedScreenshot()"><i data-ic="save" data-s="13"></i> Save & Overwrite</button>
+    </div>
+  </div>
+</div>
+
+<!-- Install Mod Modal -->
+<div class="overlay" id="modal-install">
+  <div class="modal">
+    <h2>Install: <span id="mi-name" style="color:var(--accent)"></span></h2>
+    <p class="sec" style="margin:8px 0 14px">Select a compatible version:</p>
+    <div class="ver-list" id="mi-versions"></div>
+    <div id="mi-prog-wrap" style="display:none;margin-bottom:10px">
+      <div class="muted" id="mi-prog-lbl" style="margin-bottom:4px">Downloading...</div>
+      <div class="prog-wrap"><div class="prog" id="mi-prog-bar"></div></div>
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:10px">
+      <button class="btn btn-s" onclick="closeModal('modal-install')">Cancel</button>
+      <button class="btn" id="mi-install-btn" onclick="confirmInstallMod()">Install</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Profile Modal -->
+<div class="overlay" id="modal-profile">
+  <div class="modal">
+    <h2 style="margin-bottom:14px" data-i18n="create_profile">Create Profile</h2>
+    <div class="form-row"><label data-i18n="profile_name">Profile Name</label><input type="text" class="inp" id="np-name" placeholder="My Profile"></div>
+    <div class="form-row"><label data-i18n="minecraft_version">Minecraft Version</label><select class="inp" id="np-version"><option>Loading...</option></select></div>
+    <div class="form-row"><label data-i18n="mod_loader">Mod Loader</label>
+      <select class="inp" id="np-loader"><option value="vanilla">Vanilla</option><option value="fabric">Fabric</option><option value="forge">Forge</option><option value="quilt">Quilt</option></select>
+    </div>
+    <div class="form-row"><label data-i18n="ram_mb">RAM (MB)</label><input type="number" class="inp" id="np-ram" value="4096" step="512"></div>
+    <div class="form-row"><label data-i18n="jvm_args">JVM Arguments</label>
+      <div style="display:flex;gap:6px;align-items:flex-start">
+        <textarea class="inp" id="np-jvm" rows="3" style="flex:1;resize:vertical;font-family:monospace;font-size:12px" placeholder="-XX:+UseG1GC&#10;-Xmx4G&#10;-Dminecraft.launcher.brand=FractalLauncher"></textarea>
+        <button class="btn btn-s" style="margin-top:0;height:fit-content;white-space:nowrap" onclick="openJvmInNotepad('np-jvm')" title="Open in text editor"><i data-ic="file-text" data-s="14"></i></button>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:10px;margin-top:4px">
+      <button class="btn btn-s" onclick="closeModal('modal-profile')" data-i18n="cancel">Cancel</button>
+      <button class="btn" onclick="confirmCreateProfile()" data-i18n="create">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="overlay" id="modal-edit-profile">
+  <div class="modal">
+    <h2 style="margin-bottom:14px" data-i18n="edit_profile">Edit Profile</h2>
+    <div class="form-row"><label data-i18n="profile_name">Profile Name</label><input type="text" class="inp" id="ep-name"></div>
+    <div class="form-row"><label data-i18n="mod_loader">Mod Loader</label>
+      <select class="inp" id="ep-loader"><option value="vanilla">Vanilla</option><option value="fabric">Fabric</option><option value="forge">Forge</option><option value="quilt">Quilt</option></select>
+    </div>
+    <div class="form-row"><label data-i18n="ram_mb">RAM (MB)</label><input type="number" class="inp" id="ep-ram" step="512"></div>
+    <div class="form-row"><label data-i18n="jvm_args">JVM Arguments</label>
+      <div style="display:flex;gap:6px;align-items:flex-start">
+        <textarea class="inp" id="ep-jvm" rows="3" style="flex:1;resize:vertical;font-family:monospace;font-size:12px" placeholder="-XX:+UseG1GC&#10;-Xmx4G&#10;-Dminecraft.launcher.brand=FractalLauncher"></textarea>
+        <button class="btn btn-s" style="margin-top:0;height:fit-content;white-space:nowrap" onclick="openJvmInNotepad('ep-jvm')" title="Open in text editor"><i data-ic="file-text" data-s="14"></i></button>
+      </div>
+    </div>
+    <div class="form-row"><label data-i18n="game_dir">Game Directory (optional)</label><input type="text" class="inp" id="ep-gamedir" placeholder="Leave empty for default"></div>
+    <div style="display:flex;gap:12px">
+      <div class="form-row" style="flex:1"><label data-i18n="resolution">Width</label><input type="number" class="inp" id="ep-resw" value="854"></div>
+      <div class="form-row" style="flex:1"><label data-i18n="resolution">Height</label><input type="number" class="inp" id="ep-resh" value="480"></div>
+    </div>
+    <div class="form-row" style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="ep-fullscreen"><label for="ep-fullscreen" data-i18n="fullscreen">Fullscreen</label>
+    </div>
+    <input type="hidden" id="ep-profile-id">
+    <input type="hidden" id="ep-version">
+    <div class="row" style="justify-content:flex-end;gap:10px;margin-top:4px">
+      <button class="btn btn-s" onclick="closeModal('modal-edit-profile')" data-i18n="cancel">Cancel</button>
+      <button class="btn" onclick="confirmEditProfile()" data-i18n="save_changes">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Account Modal -->
+<div class="overlay" id="modal-account">
+  <div class="modal">
+    <h2 style="margin-bottom:14px" data-i18n="add_account">Add Account</h2>
+    <div class="row" style="gap:8px;margin-bottom:14px">
+      <button class="btn btn-s acct-tab active-tab" id="tab-microsoft" onclick="switchAccountTab('microsoft')">Microsoft</button>
+      <button class="btn btn-s acct-tab" id="tab-offline" onclick="switchAccountTab('offline')">Offline</button>
+    </div>
+    <!-- Microsoft tab -->
+    <div id="acct-tab-microsoft">
+      <p class="muted" style="font-size:12px;margin-bottom:12px;line-height:1.5">
+        Sign in with your Microsoft account. A browser window will open for authentication.
+      </p>
+      <div id="ms-login-status" style="display:none;margin-bottom:12px;padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--border);font-size:13px"></div>
+      <div class="row" style="justify-content:flex-end;gap:10px;margin-top:4px">
+        <button class="btn btn-s" onclick="closeModal('modal-account')" data-i18n="cancel">Cancel</button>
+        <button class="btn" id="btn-ms-login" onclick="startMicrosoftLogin()">Sign in with Microsoft</button>
+      </div>
+    </div>
+    <!-- Offline tab -->
+    <div id="acct-tab-offline" style="display:none">
+      <div class="form-row"><label data-i18n="username">Username</label><input type="text" class="inp" id="na-user" placeholder="Enter username"></div>
+      <div class="row" style="justify-content:flex-end;gap:10px;margin-top:4px">
+        <button class="btn btn-s" onclick="closeModal('modal-account')" data-i18n="cancel">Cancel</button>
+        <button class="btn" onclick="confirmAddAccount()" data-i18n="add_offline_account">Add Offline Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Theme Editor Modal -->
+<div class="overlay" id="modal-theme-editor">
+  <div class="modal" style="width:560px">
+    <h2 style="margin-bottom:6px">Theme Editor</h2>
+    <p class="muted" style="font-size:12px;margin-bottom:12px;line-height:1.5">
+      Click a color box to pick a new color, then press that row's Save.
+      Once you've changed everything you want, press Save to store the theme.
+    </p>
+    <div id="te-list" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto"></div>
+    <div class="row" style="justify-content:flex-end;gap:10px;margin-top:14px">
+      <button class="btn btn-s" onclick="closeModal('modal-theme-editor')" data-i18n="cancel">Cancel</button>
+      <button class="btn" onclick="saveEditedTheme()"><i data-ic="save" data-s="13"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cape Preset Modal -->
+<div class="overlay" id="modal-capes">
+  <div class="modal" style="width:520px">
+    <h2 style="margin-bottom:14px" data-i18n="cape_library">Cape Library</h2>
+    <div class="cape-grid" id="cape-grid"></div>
+    <div class="row" style="justify-content:flex-end;gap:10px;margin-top:14px">
+      <button class="btn btn-s" onclick="closeModal('modal-capes')" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-d" onclick="clearCapeAndClose()"><i data-ic="trash" data-s="13"></i> <span data-i18n="remove_cape">Remove Cape</span></button>
+      <button class="btn" onclick="applySelectedCape()"><i data-ic="check" data-s="13"></i> <span data-i18n="apply_cape">Apply Cape</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- New Profile Detection Modal -->
+<div class="overlay" id="modal-newprof">
+  <div class="modal" style="width:520px">
+    <h2 style="margin-bottom:14px">New profile detected</h2>
+    <p class="muted" style="font-size:12px;margin-bottom:12px;line-height:1.5">
+      FractalLauncher found Minecraft profiles it doesn't have yet:
+    </p>
+    <div id="newprof-list" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;margin-bottom:14px"></div>
+    <p style="font-weight:600;font-size:13px;margin-bottom:14px">Would you like to add it to FractalLauncher?</p>
+    <div class="row" style="justify-content:flex-end;gap:10px">
+      <button class="btn btn-s" onclick="dismissNewProfiles()">Not Now</button>
+      <button class="btn" onclick="importNewProfiles()"><i data-ic="check" data-s="13"></i> <span>Add</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div id="tip"></div>
+
+<style>
+@keyframes spin{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+.acct-tab{opacity:0.5;transition:opacity 0.2s}
+.acct-tab.active-tab{opacity:1;background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
+</style>
+
+<!-- ═══ ONBOARDING (product tour) ═══ -->
+<div id="onboarding">
+  <div id="onb-dt"></div>
+  <div id="onb-dl"></div>
+  <div id="onb-dr"></div>
+  <div id="onb-db"></div>
+  <div class="onb-ring" id="onb-ring"></div>
+</div>
+<div class="onb-card" id="onb-card">
+    <div class="onb-arrow" id="onb-arrow"></div>
+    <div class="onb-head">
+      <div class="onb-logo"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+      <div class="onb-brand">FractalLauncher</div>
+      <div class="onb-count" id="onb-step-count"></div>
+    </div>
+    <div class="onb-body">
+      <div class="onb-slide">
+        <h3 data-i18n="onb_welcome_title">Welcome to FractalLauncher</h3>
+        <p data-i18n="onb_welcome_sub">Let's take a quick tour — it only takes a minute.</p>
+      </div>
+      <div class="onb-slide">
+        <h3 data-i18n="onb_accounts_title">Step 1: Add an account</h3>
+        <p data-i18n="onb_accounts_body">You need an account to play. Open the Accounts page and click "+ Add Account" — you can use a Microsoft account or play offline.</p>
+        <button class="btn btn-s" style="margin-top:12px" onclick="onbGoto('accounts','btn-add-account')"><i data-ic="user" data-s="13"></i> <span data-i18n="onb_take_me">Take me there</span></button>
+      </div>
+      <div class="onb-slide">
+        <h3 data-i18n="onb_profiles_title">Step 2: Create a profile</h3>
+        <p data-i18n="onb_profiles_body">A profile remembers a Minecraft version, mod loader and RAM. Open the Profiles page and click "+ New Profile".</p>
+        <button class="btn btn-s" style="margin-top:12px" onclick="onbGoto('profiles','btn-new-profile')"><i data-ic="box" data-s="13"></i> <span data-i18n="onb_take_me">Take me there</span></button>
+      </div>
+      <div class="onb-slide">
+        <h3 data-i18n="onb_home_title">Step 3: Home &amp; Play</h3>
+        <p data-i18n="onb_home_body">Home is where you launch. Pick your profile, choose an account, then hit Play.</p>
+        <button class="btn btn-s" style="margin-top:12px" onclick="onbGoto('home')"><i data-ic="play" data-s="13"></i> <span data-i18n="onb_take_me">Take me there</span></button>
+      </div>
+      <div class="onb-slide">
+        <h3 data-i18n="onb_tour_title">Explore the launcher</h3>
+        <p data-i18n="onb_tour_body">A quick look around — open any of these any time from the sidebar.</p>
+        <div class="onb-tour" id="onb-tour"></div>
+      </div>
+      <div class="onb-slide">
+        <h3 data-i18n="onb_done_title">You're all set!</h3>
+        <p data-i18n="onb_done_body">That's everything you need to start playing. Have fun!</p>
+      </div>
+    </div>
+    <div class="onb-foot">
+      <button class="btn btn-s" id="onb-back" onclick="onbBack()" style="display:none"><span data-i18n="onb_back">Back</span></button>
+      <div style="flex:1"></div>
+      <button class="btn" id="onb-next" onclick="onbNext()"><i data-ic="play" data-s="13"></i> <span data-i18n="onb_next">Next</span></button>
+    </div>
+    <button class="onb-skip" onclick="onbSkip()" data-i18n="onb_skip">Skip introduction</button>
+</div>
+
+<script>
+// ── UTILITY ──────────────────────────────────────────────────────────────────
+function $(id){return document.getElementById(id)}
+function qs(sel,ctx=document){return ctx.querySelector(sel)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const ICONS={
+  zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  play:'<polygon points="5 3 19 12 5 21 5 3"/>',
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  crown:'<path d="M2 18h20"/><path d="M4 18l-2-9 5.5 4L12 4l4.5 9.5L22 9l-2 9"/>',
+  unlock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+  lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  monitor:'<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  key:'<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3-3.5 3.5z"/>',
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
+  folder:'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+  'folder-open':'<path d="M5 19h13a2 2 0 0 0 1.84-1.22l3.35-8.36A1 1 0 0 0 22.26 8H9.5a1 1 0 0 0-.95.68L6 15"/><path d="M5 19H2a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+  search:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  refresh:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  'file-text':'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  clipboard:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+  'alert-triangle':'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  check:'<polyline points="20 6 9 17 4 12"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  scissors:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/>',
+  droplet:'<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>',
+  edit:'<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
+  'volume-2':'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>',
+  'volume-x':'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>',
+  'check-circle':'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+  'x-circle':'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+  info:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+  'chevron-left':'<polyline points="15 18 9 12 15 6"/>',
+  'chevron-right':'<polyline points="9 18 15 12 9 6"/>',
+  box:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  layers:'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+  heart:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  sparkles:'<path d="M12 3l1.9 5.7L19.6 10l-5.7 1.9L12 17.6l-1.9-5.7L4.4 10l5.7-1.9L12 3z"/><path d="M19 15l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9L19 15z"/>',
+  gamepad:'<line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><rect x="2" y="6" width="20" height="12" rx="4"/>',
+  swords:'<path d="M14.5 17.5L3 6V3h3.5L17.5 14.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/><path d="M9.5 17.5L21 6V3h-3.5L6.5 14.5"/><path d="M11 19l-6-6"/><path d="M8 16l-4 4"/><path d="M5 21l-2-2"/>',
+  skull:'<path d="M12 2a8 8 0 0 0-8 8v4l2 2v4h12v-4l2-2v-4a8 8 0 0 0-8-8z"/><circle cx="9" cy="11" r="1.5"/><circle cx="15" cy="11" r="1.5"/><line x1="10" y1="17" x2="10" y2="20"/><line x1="14" y1="17" x2="14" y2="20"/>',
+  square:'<rect x="3" y="3" width="18" height="18" rx="2"/>',
+  circle:'<circle cx="12" cy="12" r="10"/>',
+  cpu:'<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/>',
+  'hard-drive':'<line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/>',
+  wifi:'<path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>',
+  activity:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  coffee:'<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>'
+};
+function ic(name,size){size=size||16;return '<svg class="ico" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" aria-hidden="true">'+(ICONS[name]||'')+'</svg>'}
+function hydrateIcons(root){(root||document).querySelectorAll('i[data-ic]').forEach(el=>{el.innerHTML=ic(el.dataset.ic,+(el.dataset.s||16))})}
+hydrateIcons();
+
+
+let _curLang = 'en';
+function applyLanguage(lang) {
+  if (!I18N[lang]) return;
+  _curLang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (I18N[lang][key]) el.textContent = I18N[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.dataset.i18nTitle;
+    if (I18N[lang][key]) el.title = I18N[lang][key];
+  });
+  // Update dynamic labels
+  loadHome();
+}
+function onLanguageChange(lang){
+  applyLanguage(lang);
+  call('set_language',lang).then(r=>{
+    if(!(r&&r.ok))console.warn('language save failed:',r);
+  });
+}
+
+// pywebview bridge — available after 'pywebviewready' event
+let _api = null;
+function getApi(){return _api || (window.pywebview && window.pywebview.api) || null;}
+async function call(method,...args){
+  const api = getApi();
+  if(!api){console.warn('No API yet for:',method);return{ok:false,error:'API not ready'}}
+  try{return await api[method](...args)}catch(e){console.error(method,e);return{ok:false,error:String(e)}}
+}
+function fmt(bytes){if(bytes<1024)return bytes+'B';if(bytes<1048576)return(bytes/1024).toFixed(1)+'KB';return(bytes/1048576).toFixed(1)+'MB'}
+function fmtDl(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return n}
+
+// ── SOUND FX ─────────────────────────────────────────────────────────────────
+// Programmatic UI sounds using Web Audio API — zero external files needed.
+const SoundFX = (() => {
+  let _ctx = null;
+  let _enabled = true;
+
+  function _getCtx() {
+    if (!_ctx) {
+      try { _ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    }
+    // Resume if suspended (browsers require user gesture)
+    if (_ctx && _ctx.state === 'suspended') {
+      _ctx.resume().catch(() => {});
+    }
+    return _ctx;
+  }
+
+  function _play(fn) {
+    if (!_enabled) return;
+    const ctx = _getCtx();
+    if (!ctx) return;
+    fn(ctx);
+  }
+
+  function _osc(freq, type, duration, volume = 0.08) {
+    return (ctx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + duration);
+    };
+  }
+
+  return {
+    /** Toggle all sounds on/off */
+    toggle() { _enabled = !_enabled; return _enabled; },
+    get enabled() { return _enabled; },
+
+    /** Subtle click — buttons, toggles, links */
+    click() { _play(_osc(800, 'sine', 0.06, 0.06)); },
+
+    /** Soft pop — secondary buttons, inputs */
+    pop() { _play(_osc(1200, 'sine', 0.04, 0.04)); },
+
+    /** Navigation whoosh — page transitions */
+    nav() {
+      _play((ctx) => {
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(500, t);
+        osc.frequency.exponentialRampToValueAtTime(900, t + 0.15);
+        gain.gain.setValueAtTime(0.05, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.2);
+      });
+    },
+
+    /** Launch — epic rising tone for game start */
+    launch() {
+      _play((ctx) => {
+        const t = ctx.currentTime;
+        // Chord: three oscillators at different frequencies
+        [220, 330, 440].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t + i * 0.08);
+          osc.frequency.exponentialRampToValueAtTime(freq * 2, t + 0.6);
+          gain.gain.setValueAtTime(0.04, t + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t + i * 0.08);
+          osc.stop(t + 1.0);
+        });
+        // Sub bass for punch
+        const sub = ctx.createOscillator();
+        const subGain = ctx.createGain();
+        sub.type = 'triangle';
+        sub.frequency.setValueAtTime(55, t);
+        subGain.gain.setValueAtTime(0.06, t);
+        subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        sub.connect(subGain);
+        subGain.connect(ctx.destination);
+        sub.start(t);
+        sub.stop(t + 0.5);
+      });
+    },
+
+    /** Success — cheerful ascending chime */
+    success() {
+      _play((ctx) => {
+        const t = ctx.currentTime;
+        [523, 659, 784].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t + i * 0.1);
+          gain.gain.setValueAtTime(0.06, t + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 0.25);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t + i * 0.1);
+          osc.stop(t + i * 0.1 + 0.3);
+        });
+      });
+    },
+
+    /** Error — short descending buzz */
+    error() {
+      _play((ctx) => {
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(400, t);
+        osc.frequency.exponentialRampToValueAtTime(150, t + 0.2);
+        gain.gain.setValueAtTime(0.04, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.3);
+      });
+    },
+
+    /** Modal open — soft swoosh */
+    modalOpen() {
+      _play((ctx) => {
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, t);
+        osc.frequency.exponentialRampToValueAtTime(800, t + 0.12);
+        gain.gain.setValueAtTime(0.04, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.2);
+      });
+    },
+
+    /** Modal close — reverse swoosh */
+    modalClose() {
+      _play((ctx) => {
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, t);
+        osc.frequency.exponentialRampToValueAtTime(300, t + 0.1);
+        gain.gain.setValueAtTime(0.03, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.15);
+      });
+    },
+
+    /** Toggle switch — snappy click */
+    toggleClick() {
+      _play((ctx) => {
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1500, t);
+        osc.frequency.exponentialRampToValueAtTime(2000, t + 0.01);
+        gain.gain.setValueAtTime(0.03, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.05);
+      });
+    },
+
+    /** Notification chime — for status bar messages */
+    notify() {
+      _play((ctx) => {
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, t);
+        osc.frequency.setValueAtTime(1100, t + 0.06);
+        gain.gain.setValueAtTime(0.04, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.25);
+      });
+    },
+  };
+})();
+
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
+let curPage='home';
+function goto(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const pg=$('pg-'+id);
+  if(pg)pg.classList.add('active');
+  document.querySelectorAll('[data-p="'+id+'"]').forEach(n=>n.classList.add('active'));
+  curPage=id;
+  SoundFX.nav();
+  pageLoaded(id);
+}
+document.querySelectorAll('.ni').forEach(n=>{
+  n.addEventListener('click',()=>{if(n.dataset.p)goto(n.dataset.p)});
+});
+function pageLoaded(id){
+  const fns={home:loadHome,profiles:loadProfiles,accounts:loadAccounts,
+              skins:loadSkins,mods:loadMods,
+              console:()=>{},settings:loadSettings,screenshots:refreshScreenshots,
+              backups:loadBackups,diagnostics:()=>{},
+              shaders:()=>loadContent('shaders'),
+              resourcepacks:()=>loadContent('resourcepacks')};
+  if(fns[id])fns[id]();
+}
+
+// ── LAUNCH STATE EVENTS ───────────────────────────────────────────────────────
+window.addEventListener('launch_state',e=>{
+  const {state,code,error}=e.detail;
+  const btn=$('h-play-btn');
+  const hs=$('h-status');
+  const killBtn=$('kill-btn');
+  const t = I18N[_curLang] || I18N.en;
+  if(state==='launching'){
+    btn.textContent=t.running;btn.disabled=true;
+    hs.textContent=t.running;hs.style.color='var(--warn)';
+    killBtn.style.display='';
+    _userKilled=false;
+  }else if(state==='stopped'){
+    btn.innerHTML=ic('play',13)+'&nbsp;'+t.launch;btn.disabled=false;
+    hs.textContent=t.ready;hs.style.color='var(--ok)';
+    killBtn.style.display='none';
+    SoundFX.notify();
+    appendLog(`\n[FractalLauncher] Game exited (code ${code})`,'info');
+    if(code!==0 && !_userKilled) offerConsoleAfterCrash();
+    _userKilled=false;
+  }else if(state==='error'){
+    btn.innerHTML=ic('play',13)+'&nbsp;'+t.launch;btn.disabled=false;
+    hs.textContent=t.error;hs.style.color='var(--err)';
+    killBtn.style.display='none';
+    SoundFX.error();
+    appendLog(`[FractalLauncher] Error: ${error}`,'error');
+    if(!_userKilled) offerConsoleAfterCrash();
+    _userKilled=false;
+  }
+});
+window.addEventListener('console_line',e=>{
+  appendLog(e.detail.line);
+});
+window.addEventListener('install_progress',e=>{
+  const {status,frac,downloaded,total,speed,eta}=e.detail;
+  const hRow=$('h-install-row');if(hRow){hRow.style.display='';}
+  const hs=$('h-install-status');if(hs)hs.textContent=status||'Installing...';
+  const hp=$('h-install-prog');if(hp)hp.style.width=(frac*100)+'%';
+  const hPct=$('h-install-pct');if(hPct)hPct.textContent=Math.round(frac*100)+'%';
+  if(downloaded!==undefined&&total!==undefined){
+    const dl=downloaded>=100?(downloaded).toFixed(1)+' GB':(downloaded).toFixed(1)+' MB';
+    const tot=total>=100?(total).toFixed(1)+' GB':(total).toFixed(1)+' MB';
+    const hMb=$('h-install-mb');if(hMb)hMb.textContent=dl+' / '+tot;
+  }
+  if(speed!==undefined&&speed>0){
+    const hSp=$('h-install-speed');if(hSp)hSp.textContent=speed>=1?(speed).toFixed(1)+' MB/s':(speed*1024).toFixed(0)+' KB/s';
+  }
+  if(eta!==undefined&&eta>0){
+    const m=Math.floor(eta/60);const s=Math.round(eta%60);
+    const hEt=$('h-install-eta');if(hEt)hEt.textContent=m>0?m+'m '+s+'s remaining':s+'s remaining';
+  }else if(eta===-1){
+    const hEt=$('h-install-eta');if(hEt)hEt.textContent='calculating...';
+  }
+  const cBar=$('console-install-bar');if(cBar){cBar.style.display='';}
+  const cs=$('c-install-status');if(cs)cs.textContent=status||'Installing...';
+  const cp=$('c-install-prog');if(cp)cp.style.width=(frac*100)+'%';
+  const cPct=$('c-install-pct');if(cPct)cPct.textContent=Math.round(frac*100)+'%';
+  if(downloaded!==undefined&&total!==undefined){
+    const dl=downloaded>=100?(downloaded).toFixed(1)+' GB':(downloaded).toFixed(1)+' MB';
+    const tot=total>=100?(total).toFixed(1)+' GB':(total).toFixed(1)+' MB';
+    const cMb=$('c-install-mb');if(cMb)cMb.textContent=dl+' / '+tot;
+  }
+  if(speed!==undefined&&speed>0){
+    const cSp=$('c-install-speed');if(cSp)cSp.textContent=speed>=1?(speed).toFixed(1)+' MB/s':(speed*1024).toFixed(0)+' KB/s';
+  }
+  if(eta!==undefined&&eta>0){
+    const m=Math.floor(eta/60);const s=Math.round(eta%60);
+    const cEt=$('c-install-eta');if(cEt)cEt.textContent=m>0?m+'m '+s+'s remaining':s+'s remaining';
+  }else if(eta===-1){
+    const cEt=$('c-install-eta');if(cEt)cEt.textContent='calculating...';
+  }
+});
+window.addEventListener('assets_cache',e=>{
+  const d=e.detail;
+  const lib=d.libraries||{total:0,cached:0};
+  const ast=d.assets||{total:0,cached:0};
+  const libPct=lib.total?Math.round(lib.cached/lib.total*100):0;
+  const astPct=ast.total?Math.round(ast.cached/ast.total*100):0;
+  const rows=[];
+  if(lib.total)rows.push(`Libraries: ${lib.cached}/${lib.total} cached (${libPct}%)`);
+  if(ast.total)rows.push(`Assets: ${ast.cached}/${ast.total} cached (${astPct}%)`);
+  if(!rows.length)return;
+  const el=document.createElement('div');
+  el.className='install-cache-info';
+  el.style.cssText='font-size:11px;color:#8ae;padding:4px 0;opacity:0.85';
+  el.textContent='Shared cache: '+rows.join(' · ');
+  const hBar=$('h-install-row');
+  if(hBar)hBar.insertAdjacentElement('beforebegin',el);
+});
+window.addEventListener('launch_state',e=>{
+  const {state}=e.detail;
+  if(state==='stopped'||state==='error'||state==='running'){
+    $('console-install-bar').style.display='none';
+    document.querySelectorAll('.install-cache-info').forEach(el=>el.remove());
+  }
+});
+window.addEventListener('mod_download_progress',e=>{
+  const bar=$('mi-prog-bar');
+  if(bar)bar.style.width=(e.detail.frac*100)+'%';
+});
+window.addEventListener('console_clear',()=>{$('console-out').innerHTML=''});
+window.addEventListener('mods_list_updated',e=>{
+  _installedModFiles=(e.detail.mods||[]).map(f=>f.toLowerCase());
+  searchMods();
+});
+window.addEventListener('content_list_updated',e=>{
+  const ct=e.detail.content_type;
+  const type=ct==='shader'?'shaders':ct==='resourcepack'?'resourcepacks':null;
+  if(type)loadInstalledContent(type).then(()=>{if(curPage===type)searchContent(type)});
+});
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+async function loadHome(){
+  const [pr,ac]=await Promise.all([call('get_active_profile'),call('get_active_account')]);
+  const p=pr.ok?pr.profile:null,a=ac.ok?ac.account:null;
+  const t = I18N[_curLang] || I18N.en;
+  $('h-profile-name').textContent=p?p.name:t.no_profile;
+  if(p){
+    const loader=p.modLoader==='vanilla'?'Vanilla':(p.modLoader||'').charAt(0).toUpperCase()+(p.modLoader||'').slice(1);
+    const ver=p.version.match(/(\d+\.\d+(?:\.\d+)?)$/);
+    $('h-loader-badge').textContent=loader+' '+(ver?ver[1]:p.version);
+    $('h-ram').textContent=p.ramMb+' '+t.ram_usage;
+  }
+  $('h-account').innerHTML=a?((a.authType==='microsoft'?ic('lock',13)+' ':ic('user',13)+' ')+esc(a.username)):t.no_account;
+  // Populate profile selector
+  const profiles=await call('get_profiles');
+  const sel=$('h-profile-sel');
+  sel.innerHTML='';
+  ((profiles.ok&&profiles.profiles)||[]).forEach(p2=>{
+    const opt=document.createElement('option');
+    opt.value=p2.id;opt.textContent=p2.name;
+    if(p2.active)opt.selected=true;
+    sel.appendChild(opt);
+  });
+  return !!(pr.ok&&ac.ok&&profiles.ok);
+}
+async function quickSelectProfile(id){
+  await call('set_active_profile',id);
+  loadHome();
+}
+async function doLaunch(){
+  $('h-install-row').style.display='none';
+  $('h-install-prog').style.width='0%';
+  $('console-install-bar').style.display='none';
+  SoundFX.launch();
+  const r=await call('launch');
+  if(!r.ok){
+    appendLog('[FractalLauncher] '+r.error,'error');
+    SoundFX.error();
+    offerConsoleAfterCrash();
+  }
+}
+
+// ── CRASH → CONSOLE ──────────────────────────────────────────────────────────
+// Never auto-navigates to the console; only offers it after a crash.
+let _userKilled = false;
+function offerConsoleAfterCrash(){
+  if(confirm('Crash detected. Would you like to check console?')) goto('console');
+}
+
+// ── CONSOLE ───────────────────────────────────────────────────────────────────
+function appendLog(text,type){
+  const out=$('console-out');
+  const span=document.createElement('span');
+  const lo=text.toLowerCase();
+  const t=type||(lo.includes('caused by:')||lo.includes('exception in')?'error':
+    lo.includes('error')||lo.includes('crash')||lo.includes('fatal')?'error':
+    lo.includes('warn')?'warn':'info');
+  span.className='log-'+t.charAt(0);
+  span.textContent=text;
+  out.appendChild(span);
+  out.appendChild(document.createElement('br'));
+  out.scrollTop=out.scrollHeight;
+}
+async function clearConsole(){await call('clear_console');$('console-out').innerHTML='';}
+async function copyLog(){
+  const text=$('console-out').innerText;
+  try{await navigator.clipboard.writeText(text)}catch(e){
+    const ta=document.createElement('textarea');ta.value=text;
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+  }
+  SoundFX.success();
+  $('sb-status').innerHTML=ic('check',13)+' '+esc(_t('log_copied','Log copied to clipboard!'));
+  setTimeout(()=>$('sb-status').textContent='Ready',2000);
+}
+async function openLogsFolder(){
+  const r=await call('get_profile_game_dir');
+  if(r.ok&&r.path) call('open_folder',r.path+'/logs');
+  else {
+    const s=await call('get_settings');
+    if(s.ok&&s.settings.defaultMcDir) call('open_folder',s.settings.defaultMcDir+'/logs');
+  }
+}
+async function killGame(){
+  _userKilled = true;
+  const r=await call('kill_game');
+  if(!r.ok) alert('Error: '+r.error);
+}
+// Restore existing console lines when switching to console page
+async function restoreConsole(){
+  const r=await call('get_console_log');
+  if(r.ok&&r.lines.length>0){
+    $('console-out').innerHTML='';
+    r.lines.forEach(l=>appendLog(l));
+  }
+}
+
+// ── PROFILES ─────────────────────────────────────────────────────────────────
+async function loadProfiles(){
+  const r=await call('get_profiles');
+  const list=$('profiles-list');
+  list.innerHTML='';
+  (r.profiles||[]).forEach(p=>{
+    const card=document.createElement('div');
+    card.className='card profile-card'+(p.active?' active-p':'');
+    const loader=p.modLoader==='vanilla'?'Vanilla':p.modLoader;
+    const ver=p.version.match(/(\d+\.\d+(?:\.\d+)?)$/);
+    card.innerHTML=`
+      <div>
+        <div style="font-weight:600;font-size:15px">${p.name}</div>
+        <div class="muted" style="margin-top:3px">${loader} ${ver?ver[1]:p.version} · ${p.ramMb} MB RAM</div>
+      </div>
+      <div class="row" style="gap:8px">
+        ${p.active?'<span class="badge b-g">Active</span>':
+          `<button class="btn btn-s" style="font-size:12px;padding:6px 12px" onclick="selectProfile('${p.id}')">Set Active</button>`}
+        <button class="btn btn-s" style="font-size:12px;padding:6px 12px" onclick="editProfile('${p.id}')">Edit</button>
+        <button class="btn btn-d" style="font-size:12px;padding:6px 12px" onclick="deleteProfile('${p.id}')">Delete</button>
+      </div>`;
+    list.appendChild(card);
+  });
+  if(!r.profiles||!r.profiles.length){
+    list.innerHTML='<div class="muted card" style="padding:20px;text-align:center">No profiles yet. Click "+ New Profile" to create one.</div>';
+  }
+}
+async function selectProfile(id){await call('set_active_profile',id);loadProfiles();loadHome();}
+async function deleteProfile(id){if(confirm('Delete this profile?')){await call('delete_profile',id);SoundFX.pop();loadProfiles();loadHome();}}
+async function showCreateProfile(){
+  $('np-name').value='';
+  // Open modal FIRST so the user sees instant feedback
+  openModal('modal-profile');
+  // Show loading state in the version dropdown immediately
+  const sel=$('np-version');
+  sel.innerHTML='<option>Loading versions...</option>';
+  sel.disabled=true;
+  // Fetch versions in background (cached after first call)
+  const r=await call('get_version_list');
+  sel.disabled=false;
+  sel.innerHTML='';
+  (r.versions||[]).forEach(v=>{
+    const o=document.createElement('option');
+    o.value=v;o.textContent=v;
+    sel.appendChild(o);
+  });
+  if(sel.options.length>0) sel.selectedIndex=0;
+}
+async function confirmCreateProfile(){
+  const name=$('np-name').value.trim();
+  if(!name)return;
+  const r=await call('create_profile',name,$('np-version').value,$('np-loader').value,parseInt($('np-ram').value)||4096,$('np-jvm').value.trim());
+  if(r.ok){closeModal('modal-profile');SoundFX.success();loadProfiles();loadHome();}
+  else {alert('Error: '+r.error);SoundFX.error();}
+}
+async function editProfile(id){
+  const r=await call('get_profiles');
+  const p=(r.profiles||[]).find(x=>x.id===id);
+  if(!p)return;
+  $('ep-profile-id').value=p.id;
+  $('ep-name').value=p.name;
+  $('ep-version').value=p.version;
+  $('ep-ram').value=p.ramMb;
+  $('ep-jvm').value=p.jvmArgs||'';
+  $('ep-gamedir').value=p.gameDir||'';
+  $('ep-resw').value=p.resolutionW||854;
+  $('ep-resh').value=p.resolutionH||480;
+  $('ep-fullscreen').checked=!!p.fullscreen;
+  $('ep-loader').value=p.modLoader;
+  openModal('modal-edit-profile');
+}
+async function confirmEditProfile(){
+  const id=$('ep-profile-id').value;
+  if(!id)return;
+  const r=await call('update_profile',id,{
+    name:$('ep-name').value.trim(),
+    version:$('ep-version').value,
+    mod_loader:$('ep-loader').value,
+    ram_mb:parseInt($('ep-ram').value)||4096,
+    jvm_args:$('ep-jvm').value.trim(),
+    game_dir:$('ep-gamedir').value.trim(),
+    resolution_w:parseInt($('ep-resw').value)||854,
+    resolution_h:parseInt($('ep-resh').value)||480,
+    fullscreen:$('ep-fullscreen').checked
+  });
+  if(r.ok){closeModal('modal-edit-profile');SoundFX.success();loadProfiles();loadHome();}
+  else {alert('Error: '+r.error);SoundFX.error();}
+}
+async function openJvmInNotepad(textareaId){
+  const ta=$(textareaId);
+  const r=await call('edit_jvm_notepad',ta.value);
+  if(r.ok){ta.value=r.text;}
+}
+
+// ── ACCOUNTS ─────────────────────────────────────────────────────────────────
+async function loadAccounts(){
+  const r=await call('get_accounts');
+  const list=$('accounts-list');
+  list.innerHTML='';
+  (r.accounts||[]).forEach(a=>{
+    const card=document.createElement('div');
+    card.className='card acc-card'+(a.active?' active-a':'');
+    card.innerHTML=`
+      <div class="row" style="gap:12px">
+        <div>${ic(a.authType==='microsoft'?'lock':'user',20)}</div>
+        <div>
+          <div style="font-weight:600">${a.username}</div>
+          <div class="muted">${a.authType==='microsoft'?'Microsoft Account':'Offline Account'}</div>
+        </div>
+        ${a.active?'<span class="badge b-g">Active</span>':''}
+      </div>
+      <div class="row" style="gap:8px">
+        ${!a.active?`<button class="btn btn-s" style="font-size:12px;padding:6px 12px" onclick="selectAccount('${a.id}')">Set Active</button>`:''}
+        <button class="btn btn-d" style="font-size:12px;padding:6px 12px" onclick="deleteAccount('${a.id}')">Delete</button>
+      </div>`;
+    list.appendChild(card);
+  });
+  if(!r.accounts||!r.accounts.length){
+    list.innerHTML='<div class="muted card" style="padding:20px;text-align:center">No accounts yet. Click "+ Add Account".</div>';
+  }
+}
+async function selectAccount(id){await call('set_active_account',id);loadAccounts();loadHome();}
+async function deleteAccount(id){if(confirm('Remove this account?')){await call('delete_account',id);SoundFX.pop();loadAccounts();loadHome();}}
+function showAddAccount(){
+  $('na-user').value='';
+  $('ms-login-status').style.display='none';
+  $('btn-ms-login').disabled=false;
+  $('btn-ms-login').textContent='Sign in with Microsoft';
+  switchAccountTab('microsoft');
+  openModal('modal-account');
+}
+function switchAccountTab(tab){
+  document.querySelectorAll('.acct-tab').forEach(t=>t.classList.remove('active-tab'));
+  $('tab-'+tab).classList.add('active-tab');
+  $('acct-tab-microsoft').style.display=tab==='microsoft'?'':'none';
+  $('acct-tab-offline').style.display=tab==='offline'?'':'none';
+}
+async function startMicrosoftLogin(){
+  const btn=$('btn-ms-login');
+  const status=$('ms-login-status');
+  btn.disabled=true;
+  btn.textContent='Waiting for browser...';
+  status.style.display='block';
+  status.style.borderColor='var(--accent)';
+  status.textContent='A browser window has opened. Log in with your Microsoft account. Waiting for authentication...';
+  const r=await call('start_microsoft_login');
+  if(!r.ok){
+    status.style.borderColor='var(--err,#e53935)';
+    status.textContent='Error: '+r.error;
+    btn.disabled=false;
+    btn.textContent='Sign in with Microsoft';
+  }
+}
+window.addEventListener('microsoft_login_success',e=>{
+  closeModal('modal-account');
+  SoundFX.success();
+  loadAccounts();
+  loadHome();
+  $('sb-status').innerHTML=ic('check-circle',13)+' Microsoft account added: '+esc(e.detail.username);
+  setTimeout(()=>$('sb-status').textContent='Ready',3000);
+});
+window.addEventListener('microsoft_login_error',e=>{
+  const status=$('ms-login-status');
+  const btn=$('btn-ms-login');
+  status.style.borderColor='var(--err,#e53935)';
+  status.textContent='Error: '+e.detail.error;
+  btn.disabled=false;
+  btn.textContent='Sign in with Microsoft';
+  SoundFX.error();
+});
+async function confirmAddAccount(){
+  const u=$('na-user').value.trim();
+  if(!u)return;
+  const r=await call('add_offline_account',u);
+  if(r.ok){closeModal('modal-account');SoundFX.success();loadAccounts();loadHome();}
+  else {alert('Error: '+r.error);SoundFX.error();}
+}
+
+// ── SKINS ────────────────────────────────────────────────────────────────────
+let _skinPath='',_capePath='',_skinModel='default';
+let _skinViewer=null;
+
+function initSkinViewer() {
+  if (_skinViewer) return;
+  _skinViewer = new skinview3d.SkinViewer({
+    canvas: $("skin-canvas"),
+    width: 200,
+    height: 280,
+  });
+  _skinViewer.autoRotate = true;
+  _skinViewer.autoRotateSpeed = 0.5;
+  _skinViewer.animation = new skinview3d.WalkingAnimation();
+}
+
+async function updateSkinPreview() {
+  if (!_skinViewer) initSkinViewer();
+  if (_skinPath) {
+    await _skinViewer.loadSkin("file:///" + _skinPath.replace(/\\/g, '/'), {
+      model: _skinModel === 'slim' ? 'slim' : 'default'
+    });
+  } else {
+    await _skinViewer.loadSkin("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAA1UlEQVR4nO3XsQ3CMBBG4RvHtWeIqD0DoswAiIoBGAKxAGuw1SEKKKLoLgYijO896ZfSuPCnFImI026T1NrtcjDnnZfWAwAAAAAAAICOAbq/oFd4AO+Czz2ae/Ymrbf0IrnsZ5/DALw7aT0AFl7kfNy+FhKg2zdgWs5FrXnnh/Gq1rzzHuDqwAAAAEAVQC4nteaBTAcAAAAAAAAAAPwOIKWk1moBvv2htHoAABAc4NOfob8PAAAAAAAAAAAAAAAAggLU/gx1FwAABAcgIiIiIiIiIum9OwoBobFtHJ/6AAAAAElFTkSuQmCC");
+  }
+  
+  if (_capePath) {
+    await _skinViewer.loadCape("file:///" + _capePath.replace(/\\/g, '/'));
+  } else {
+    _skinViewer.loadCape(null);
+  }
+}
+
+async function loadSkins(){
+  const r=await call('get_active_account');
+  if(!r.ok||!r.account)return;
+  const a=r.account;
+  _skinPath=a.skinPath||'';_capePath=a.capePath||'';_skinModel=a.skinModel||'default';
+  // For Microsoft accounts: skinPath may be empty but skinUrl exists — cache it locally
+  if(!_skinPath && a.skinUrl){
+    const c=await call('cache_skin_from_url',a.skinUrl);
+    if(c.ok&&c.path){_skinPath=c.path;a.skinPath=c.path;}
+  }
+  $('skin-current').textContent=_skinPath?'Current: '+_skinPath.split(/[/\\]/).pop():'No skin set';
+  $('cape-current').textContent=_capePath?'Cape: '+_capePath.split(/[/\\]/).pop():'No cape set';
+  $('skin-model-lbl').textContent=_skinModel==='slim'?'Slim (Alex)':'Classic (Steve)';
+  
+  document.querySelectorAll('.mt-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('onclick').includes(_skinModel));
+  });
+  
+  updateSkinPreview();
+}
+async function browseSkin(){
+  const r=await call('browse_file','Select Skin PNG','PNG files (*.png)|*.png');
+  if(r.ok&&r.path){
+    _skinPath=r.path;
+    $('skin-current').textContent='Selected: '+r.path.split(/[/\\]/).pop();
+    updateSkinPreview();
+  }
+}
+async function browseCape(){
+  const r=await call('browse_file','Select Cape PNG','PNG files (*.png)|*.png');
+  if(r.ok&&r.path){
+    _capePath=r.path;
+    $('cape-current').textContent='Cape: '+r.path.split(/[/\\]/).pop();
+    updateSkinPreview();
+  }
+}
+async function clearCape(){_capePath='';$('cape-current').textContent='No cape set';updateSkinPreview();await call('clear_cape');}
+async function clearCapeAndClose(){await clearCape();closeModal('modal-capes');}
+function setSkinModel(m,btn){
+  _skinModel=m;
+  document.querySelectorAll('.mt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  $('skin-model-lbl').textContent=m==='slim'?'Slim (Alex)':'Classic (Steve)';
+  SoundFX.pop();
+  updateSkinPreview();
+}
+async function saveSkin(){
+  let r=await call('set_skin',_skinPath,_skinModel);
+  if(!r.ok){alert('Error: '+r.error);SoundFX.error();return;}
+  if(_capePath)r=await call('set_cape',_capePath);
+  SoundFX.success();
+  $('sb-status').textContent='Skin saved!';
+  setTimeout(()=>$('sb-status').textContent='Ready',2000);
+}
+
+// Cape presets
+let _selCape='';
+async function showCapeModal(){
+  const r=await call('get_cape_presets');
+  const grid=$('cape-grid');
+  grid.innerHTML='';
+  (r.capes||[]).forEach(c=>{
+    const card=document.createElement('div');
+    card.className='cape-card';
+    card.innerHTML=`<img src="file:///${c.path.replace(/\\/g,'/')}" loading="lazy" onerror="this.style.background='#2a2d35';this.style.height='70px'"><span>${c.name}</span>`;
+    card.onclick=()=>{_selCape=c.path;document.querySelectorAll('.cape-card').forEach(x=>x.classList.remove('sel'));card.classList.add('sel');};
+    grid.appendChild(card);
+  });
+  openModal('modal-capes');
+}
+function applySelectedCape(){
+  if(_selCape){
+    _capePath=_selCape;
+    $('cape-current').textContent='Cape: '+_selCape.split(/[/\\]/).pop();
+    updateSkinPreview();
+  }
+  closeModal('modal-capes');
+}
+
+// ── MODS ─────────────────────────────────────────────────────────────────────
+let _modOffset=0,_modHasMore=false;
+let _modSearchTimer=null;
+let _installModId='',_installModVersions=[],_installContentType='mod';
+let _installedModFiles=[];  // Track installed mods for display
+
+async function loadMods(){
+  const r=await call('get_installed_mods');
+  const list=$('installed-mods');
+  list.innerHTML='';
+  _installedModFiles=(r.mods||[]).map(m=>m.filename.toLowerCase());
+  $('mod-count').textContent=r.mods?r.mods.length:0;
+  (r.mods||[]).forEach(m=>{
+    const row=document.createElement('div');
+    row.className='mod-item';
+    const short=m.filename.length>22?m.filename.slice(0,20)+'…':m.filename;
+    row.innerHTML=`
+      <span title="${m.filename}">${short}</span>
+      <div class="row" style="gap:6px">
+        <div class="tgl${m.enabled?' on':''}" onclick="toggleMod('${m.filename}',this)" title="${m.enabled?'Disable':'Enable'}"></div>
+        <button class="btn btn-d" style="padding:3px 7px;font-size:10px" onclick="deleteMod('${m.filename}')">${ic('x',11)}</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  if(!r.mods||!r.mods.length){
+    list.innerHTML='<div class="muted" style="padding:12px">No mods installed</div>';
+  }
+  searchMods();
+}
+function debounceModSearch(){clearTimeout(_modSearchTimer);_modSearchTimer=setTimeout(()=>{_modOffset=0;searchMods();},500);}
+async function searchMods(){
+  const q=$('mod-search').value.trim();
+  const res=$('mod-results');
+  res.innerHTML='<div class="muted" style="grid-column:1/-1;padding:20px;text-align:center">'+ic('search',14)+' Searching...</div>';
+  $('mod-prev').disabled=true;$('mod-next').disabled=true;
+  $('mod-page-lbl').textContent='Searching…';
+  const r=await call('search_mods',q,_modOffset,20);
+  if(!r.ok){res.innerHTML=`<div class="muted" style="grid-column:1/-1;padding:20px">Error: ${r.error}</div>`;return;}
+  _modHasMore=r.hasMore;
+  $('mod-page-lbl').textContent='Page '+r.page;
+  $('mod-prev').disabled=_modOffset===0;
+  $('mod-next').disabled=!r.hasMore;
+  res.innerHTML='';
+  if(!r.mods||!r.mods.length){
+    const msg=r.error||'No results found';
+    res.innerHTML=`<div class="muted" style="grid-column:1/-1;padding:20px;text-align:center">${msg}</div>`;
+    return;
+  }
+  r.mods.forEach(m=>{
+    const card=document.createElement('div');
+    card.className='card mod-card';
+    const isInstalled=_installedModFiles.some(f=>f.includes(m.name.toLowerCase().replace(/\s+/g,'-'))||f.includes(m.id));
+    const btnText=isInstalled?ic('check',12)+' Installed':ic('download',12)+' Install';
+    const btnStyle=isInstalled?'font-size:11px;padding:7px;margin-top:4px;opacity:0.6;cursor:default':'font-size:11px;padding:7px;margin-top:4px';
+    const iconHtml=m.icon_url?`<img class="mod-icon" src="${m.icon_url}" onerror="this.style.display='none'" loading="lazy">`:'';
+    card.innerHTML=`
+      <div class="mod-card-header">
+        ${iconHtml}
+        <div style="flex:1;min-width:0">
+          <div class="row" style="justify-content:space-between">
+            <span class="src-badge">Modrinth</span>
+            <span class="muted" style="font-size:10px">${ic('download',10)} ${fmtDl(m.downloads)}</span>
+          </div>
+          <div class="mc-title">${m.name}</div>
+          <div class="mc-auth">by ${m.author}</div>
+        </div>
+      </div>
+      <div class="mc-desc">${m.description}</div>
+      <button class="btn" style="${btnStyle}" data-id="${m.id}" data-name="${m.name}"${isInstalled?' disabled':''} >${btnText}</button>`;
+    const btn=card.querySelector('button');
+    if(!isInstalled) btn.onclick=()=>openInstallModal(m.id,m.name);
+    res.appendChild(card);
+  });
+}
+function modPage(dir){_modOffset=Math.max(0,_modOffset+(dir*20));searchMods();}
+async function toggleMod(fn,tgl){
+  const r=await call('toggle_mod',fn);
+  if(r.ok){tgl.classList.toggle('on');SoundFX.toggleClick();}
+}
+async function deleteMod(fn){if(confirm('Remove '+fn+'?')){await call('delete_mod',fn);loadMods();}}
+async function openModsFolder(){
+  const r=await call('get_profile_game_dir');
+  if(r.ok&&r.path) call('open_folder',r.path+'/mods');
+}
+
+// Install mod
+async function openInstallModal(id,name,content_type){
+  _installModId=id;_installModVersions=[];_installContentType=content_type||'mod';
+  $('mi-name').textContent=name;
+  $('mi-versions').innerHTML='<div class="muted" style="padding:12px">Loading versions...</div>';
+  $('mi-prog-wrap').style.display='none';
+  $('mi-install-btn').disabled=false;
+  openModal('modal-install');
+  const r=await call('install_mod',id,name,_installContentType);
+  if(!r.ok){$('mi-versions').innerHTML=`<div style="color:var(--err);padding:12px">${r.error}</div>`;return;}
+  _installModVersions=r.versions||[];
+  $('mi-versions').innerHTML='';
+  _installModVersions.forEach((v,i)=>{
+    const row=document.createElement('div');
+    row.className='ver-item'+(i===0?' sel':'');
+    row.dataset.fn=v.filename;
+    row.innerHTML=`<span>${v.name||v.filename}</span><span class="muted">${fmt(v.size)}</span>`;
+    row.onclick=()=>{document.querySelectorAll('.ver-item').forEach(x=>x.classList.remove('sel'));row.classList.add('sel');};
+    $('mi-versions').appendChild(row);
+  });
+}
+async function confirmInstallMod(){
+  const sel=qs('.ver-item.sel',$('mi-versions'));
+  if(!sel)return;
+  const fn=sel.dataset.fn;
+  $('mi-prog-wrap').style.display='';
+  $('mi-prog-lbl').textContent='Downloading '+fn+'…';
+  $('mi-prog-bar').style.width='0%';
+  $('mi-install-btn').disabled=true;
+  const r=await call('download_mod_version',_installModId,fn,_installContentType);
+  if(r.ok){
+    const type=_installContentType==='shader'?'shaders':(_installContentType==='resourcepack'?'resourcepacks':null);
+    if(type)await loadInstalledContent(type);
+    $('mi-prog-bar').style.width='100%';
+    $('mi-prog-lbl').innerHTML=ic('check-circle',14)+' Installed!';
+    setTimeout(()=>{closeModal('modal-install');pageLoaded(curPage);},800);
+  }else{
+    $('mi-prog-lbl').innerHTML=ic('x-circle',14)+' '+esc(r.error);
+    $('mi-install-btn').disabled=false;
+  }
+}
+
+// ── CONTENT BROWSER (shaders / resource packs) ────────────────────────────────
+let _contentOffsets={shaders:0,resourcepacks:0};
+let _contentTimers={shaders:null,resourcepacks:null};
+const CONTENT_TYPES={shaders:'shader',resourcepacks:'resourcepack'};
+const CONTENT_MAP={
+  shaders:{search:'shader-search',results:'shader-results',
+           prev:'sh-prev',next:'sh-next',lbl:'sh-page-lbl',installed:'shaders-installed'},
+  resourcepacks:{search:'rp-search',results:'rp-results',
+                 prev:'rp-prev',next:'rp-next',lbl:'rp-page-lbl',installed:'rp-installed'},
+};
+function debounceShaderSearch(){clearTimeout(_contentTimers.shaders);_contentTimers.shaders=setTimeout(()=>{_contentOffsets.shaders=0;searchContent('shaders');},500);}
+function debounceRPSearch(){clearTimeout(_contentTimers.resourcepacks);_contentTimers.resourcepacks=setTimeout(()=>{_contentOffsets.resourcepacks=0;searchContent('resourcepacks');},500);}
+function searchShaders(){_contentOffsets.shaders=0;searchContent('shaders');}
+function searchRP(){_contentOffsets.resourcepacks=0;searchContent('resourcepacks');}
+function shaderPage(d){_contentOffsets.shaders=Math.max(0,_contentOffsets.shaders+d*20);searchContent('shaders');}
+function rpPage(d){_contentOffsets.resourcepacks=Math.max(0,_contentOffsets.resourcepacks+d*20);searchContent('resourcepacks');}
+async function openShadersFolder(){const r=await call('get_profile_game_dir');if(r.ok&&r.path)call('open_folder',r.path+'/shaderpacks');}
+async function openRPFolder(){const r=await call('get_profile_game_dir');if(r.ok&&r.path)call('open_folder',r.path+'/resourcepacks');}
+let _installedContentFiles={shaders:[],resourcepacks:[]};
+function _contentNormName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'')}
+function _contentIsInstalled(type,mod){
+  const files=_installedContentFiles[type]||[];
+  const id=String(mod.id||'').toLowerCase();
+  const slug=_contentNormName(mod.slug);
+  const name=_contentNormName(mod.name);
+  return files.some(raw=>{
+    const f=String(raw||'').toLowerCase().replace(/\.disabled$/,'');
+    const nf=_contentNormName(f);
+    return (id&&f.includes(id))||(slug&&nf.includes(slug))||(name&&nf.includes(name));
+  });
+}
+async function loadInstalledContent(type){
+  const m=CONTENT_MAP[type];
+  if(!m)return;
+  const box=$(m.installed);
+  const r=await call('get_installed_content',CONTENT_TYPES[type]);
+  if(!r.ok){box.className='muted';box.textContent='Could not load installed items';return;}
+  const items=r.items||[];
+  _installedContentFiles[type]=items.map(i=>i.filename);
+  box.innerHTML='';
+  if(!items.length){box.className='muted';box.textContent='None installed';return;}
+  box.className='';
+  items.forEach(it=>{
+    const row=document.createElement('div');
+    row.className='mod-item';
+    const label=it.name||it.filename;
+    const short=label.length>24?label.slice(0,22)+'…':label;
+    const nameEl=document.createElement('span');
+    nameEl.title=it.filename;
+    nameEl.textContent=it.enabled===false?short+' (disabled)':short;
+    if(it.enabled===false)nameEl.style.opacity='0.55';
+    const actions=document.createElement('div');
+    actions.className='row';actions.style.gap='6px';
+    const btn=document.createElement('button');
+    btn.className='btn btn-d';btn.style.cssText='padding:3px 7px;font-size:10px';
+    btn.innerHTML=ic('x',11);btn.title='Remove';
+    btn.onclick=()=>deleteContent(it.filename,CONTENT_TYPES[type]);
+    actions.appendChild(btn);
+    row.appendChild(nameEl);row.appendChild(actions);
+    box.appendChild(row);
+  });
+}
+async function deleteContent(filename,ctype){
+  if(!confirm('Remove '+filename+'?'))return;
+  const r=await call('delete_content',filename,ctype);
+  if(!r.ok){alert('Could not remove '+filename+': '+r.error);return;}
+  const type=ctype==='shader'?'shaders':'resourcepacks';
+  await loadInstalledContent(type);
+  if(curPage===type)await searchContent(type);
+}
+async function loadContent(type){
+  await loadInstalledContent(type);
+  await searchContent(type);
+}
+async function searchContent(type){
+  const m=CONTENT_MAP[type];
+  const q=$(m.search).value.trim();
+  const off=_contentOffsets[type];
+  const ctype=CONTENT_TYPES[type];
+  $(m.results).innerHTML='<div class="muted" style="grid-column:1/-1;padding:20px;text-align:center">'+ic('search',14)+' Searching...</div>';
+  $(m.prev).disabled=true;$(m.next).disabled=true;$(m.lbl).textContent='Searching…';
+  const r=await call('search_content',q,ctype,off,20);
+  if(!r.ok){$(m.results).innerHTML=`<div class="muted" style="grid-column:1/-1;padding:20px">Error: ${r.error}</div>`;return;}
+  $(m.lbl).textContent='Page '+r.page;
+  $(m.prev).disabled=off===0;$(m.next).disabled=!r.hasMore;
+  $(m.results).innerHTML='';
+  if(!r.mods||!r.mods.length){const msg=r.error||'No results found';$(m.results).innerHTML=`<div class="muted" style="grid-column:1/-1;padding:20px;text-align:center">${msg}</div>`;return;}
+  r.mods.forEach(mod=>{
+    const card=document.createElement('div');
+    card.className='card mod-card';
+    const isInstalled=_contentIsInstalled(type,mod);
+    const iconHtml=mod.icon_url?`<img class="mod-icon" src="${mod.icon_url}" onerror="this.style.display='none'" loading="lazy">`:'';
+    card.innerHTML=`
+      <div class="mod-card-header">
+        ${iconHtml}
+        <div style="flex:1;min-width:0">
+          <div class="row" style="justify-content:space-between">
+            <span class="src-badge">Modrinth</span>
+            <span class="muted" style="font-size:10px">${ic('download',10)} ${fmtDl(mod.downloads)}</span>
+          </div>
+          <div class="mc-title">${mod.name}</div>
+          <div class="mc-auth">by ${mod.author}</div>
+        </div>
+      </div>
+      <div class="mc-desc">${mod.description}</div>
+      <button class="btn" style="font-size:11px;padding:7px;margin-top:4px${isInstalled?';opacity:0.6;cursor:default':''}" ${isInstalled?'disabled':''}>${isInstalled?ic('check',12)+' Installed':ic('download',12)+' Install'}</button>`;
+    const btn=card.querySelector('button');
+    if(!isInstalled)btn.onclick=()=>openInstallModal(mod.id,mod.name,ctype);
+    $(m.results).appendChild(card);
+  });
+}
+
+// ── SCREENSHOTS ───────────────────────────────────────────────────────────────
+async function refreshScreenshots(){
+  const r=await call('get_screenshots');
+  const grid=$('screenshots-grid');
+  grid.innerHTML='';
+  if(!r.screenshots||!r.screenshots.length){
+    grid.innerHTML='<div class="muted">No screenshots found</div>';return;
+  }
+  r.screenshots.forEach(s=>{
+    const card=document.createElement('div');
+    card.className='ss-card';
+    const fp=s.path.replace(/\\/g,'/');
+    const bust=s.mtime_ns||s.mtime||Date.now();
+    card.innerHTML=`<img src="file:///${fp}?v=${bust}" alt="${s.filename}" loading="lazy"><div class="ss-name">${s.filename}</div>`;
+    const img=card.querySelector('img');
+    img.onerror=()=>{img.onerror=null;img.src=`file:///${fp}`;};
+    card.onclick=()=>openScreenshotEditor(s.path);
+    grid.appendChild(card);
+  });
+}
+
+let _editorImg = new Image();
+let _editorCanvas, _editorCtx;
+let _editorTool = 'crop';
+let _editorPath = '';
+let _isDrawing = false;
+let _startX, _startY;
+
+function openScreenshotEditor(path) {
+  _editorPath = path;
+  _editorCanvas = $('editor-canvas');
+  _editorCtx = _editorCanvas.getContext('2d');
+  _editorImg = new Image();
+
+  _editorImg.onload = () => {
+    resetEditor();
+    openModal('modal-editor');
+  };
+  _editorImg.onerror = () => alert('Could not load this screenshot.');
+  _editorImg.src = "file:///" + path.replace(/\\/g, '/') + '?v=' + Date.now();
+}
+
+function resetEditor() {
+  _editorCanvas.width = _editorImg.width;
+  _editorCanvas.height = _editorImg.height;
+  _editorCtx.drawImage(_editorImg, 0, 0);
+  setEditorTool('crop');
+}
+
+function setEditorTool(tool) {
+  _editorTool = tool;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  $('tool-' + tool).classList.add('active');
+}
+
+// Canvas events for editing
+$('editor-canvas').onmousedown = (e) => {
+  const rect = _editorCanvas.getBoundingClientRect();
+  const scaleX = _editorCanvas.width / rect.width;
+  const scaleY = _editorCanvas.height / rect.height;
+  _startX = (e.clientX - rect.left) * scaleX;
+  _startY = (e.clientY - rect.top) * scaleY;
+  _isDrawing = true;
+  
+  if (_editorTool === 'draw') {
+    _editorCtx.beginPath();
+    _editorCtx.moveTo(_startX, _startY);
+    _editorCtx.strokeStyle = '#ff0000';
+    _editorCtx.lineWidth = 5;
+    _editorCtx.lineCap = 'round';
+  }
+};
+
+$('editor-canvas').onmousemove = (e) => {
+  if (!_isDrawing) return;
+  const rect = _editorCanvas.getBoundingClientRect();
+  const scaleX = _editorCanvas.width / rect.width;
+  const scaleY = _editorCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  if (_editorTool === 'draw') {
+    _editorCtx.lineTo(x, y);
+    _editorCtx.stroke();
+  } else if (_editorTool === 'crop' || _editorTool === 'blur') {
+    // Redraw image and selection box
+    _editorCtx.drawImage(_editorImg, 0, 0);
+    _editorCtx.strokeStyle = _editorTool === 'crop' ? '#5865f2' : '#ed4245';
+    _editorCtx.setLineDash([5, 5]);
+    _editorCtx.strokeRect(_startX, _startY, x - _startX, y - _startY);
+    _editorCtx.setLineDash([]);
+  }
+};
+
+$('editor-canvas').onmouseup = (e) => {
+  if (!_isDrawing) return;
+  _isDrawing = false;
+  
+  const rect = _editorCanvas.getBoundingClientRect();
+  const scaleX = _editorCanvas.width / rect.width;
+  const scaleY = _editorCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  if (_editorTool === 'crop') {
+    const w = x - _startX;
+    const h = y - _startY;
+    if (Math.abs(w) > 10 && Math.abs(h) > 10) {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = Math.abs(w);
+      tempCanvas.height = Math.abs(h);
+      tempCanvas.getContext('2d').drawImage(_editorCanvas, Math.min(_startX, x), Math.min(_startY, y), Math.abs(w), Math.abs(h), 0, 0, Math.abs(w), Math.abs(h));
+      
+      _editorCanvas.width = tempCanvas.width;
+      _editorCanvas.height = tempCanvas.height;
+      _editorCtx.drawImage(tempCanvas, 0, 0);
+      
+      // Update the "source" for further edits
+      const newImg = new Image();
+      newImg.onload = () => { _editorImg = newImg; };
+      newImg.src = _editorCanvas.toDataURL();
+    }
+  } else if (_editorTool === 'blur') {
+    const w = x - _startX;
+    const h = y - _startY;
+    if (Math.abs(w) > 5 && Math.abs(h) > 5) {
+      _editorCtx.save();
+      _editorCtx.filter = 'blur(10px)';
+      _editorCtx.drawImage(_editorCanvas, Math.min(_startX, x), Math.min(_startY, y), Math.abs(w), Math.abs(h), Math.min(_startX, x), Math.min(_startY, y), Math.abs(w), Math.abs(h));
+      _editorCtx.restore();
+      
+      const newImg = new Image();
+      newImg.onload = () => { _editorImg = newImg; };
+      newImg.src = _editorCanvas.toDataURL();
+    }
+  }
+};
+
+async function saveEditedScreenshot() {
+  try {
+    const isJpg = /\.(jpe?g)$/i.test(_editorPath);
+    const mime = isJpg ? 'image/jpeg' : 'image/png';
+    const dataUrl = _editorCanvas.toDataURL(mime, isJpg ? 0.95 : undefined);
+    const base64Data = dataUrl.replace(/^data:image\/[a-z0-9.+-]+;base64,/, "");
+
+    const r = await call('save_edited_screenshot', _editorPath, base64Data);
+    if (r.ok) {
+      closeModal('modal-editor');
+      await refreshScreenshots();
+      $('sb-status').textContent = 'Screenshot saved!';
+      setTimeout(() => $('sb-status').textContent = 'Ready', 2000);
+    } else {
+      alert("Error saving: " + r.error);
+    }
+  } catch (e) {
+    alert("Error saving: " + (e && e.message ? e.message : e));
+  }
+}
+
+// ── BACKUPS ───────────────────────────────────────────────────────────────────
+async function loadBackups(){
+  const r=await call('get_backups');
+  const list=$('backups-list');
+  list.innerHTML='';
+  (r.backups||[]).forEach(b=>{
+    const row=document.createElement('div');
+    row.className='card';
+    row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:12px 16px';
+    row.innerHTML=`
+      <div><div style="font-weight:600;font-size:13px">${b.filename}</div><div class="muted">${fmt(b.size)}</div></div>
+      <div class="row" style="gap:8px">
+        <button class="btn btn-s" style="font-size:11px;padding:5px 10px" onclick="call('open_folder','${b.path.replace(/\\/g,'\\\\').replace(/[/\\][^/\\]+$/,'')}')">${ic('folder-open',12)} Open</button>
+        <button class="btn btn-d" style="font-size:11px;padding:5px 10px" onclick="deleteBackup('${b.filename}')">Delete</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  if(!r.backups||!r.backups.length){
+    list.innerHTML='<div class="muted card" style="padding:16px">No backups yet</div>';
+  }
+}
+async function doBackup(){
+  $('backup-status').innerHTML=ic('clock',13)+' Creating backup...';
+  const r=await call('backup_now');
+  if(r.ok){$('backup-status').innerHTML=ic('check-circle',13)+' Backup created: '+esc(r.filename);SoundFX.success();loadBackups();}
+  else {$('backup-status').innerHTML=ic('x-circle',13)+' '+esc(r.error);SoundFX.error();}
+}
+async function deleteBackup(fn){if(confirm('Delete backup '+fn+'?')){await call('delete_backup',fn);loadBackups();}}
+
+// ── DIAGNOSTICS ───────────────────────────────────────────────────────────────
+let _lastDiag=null;
+const DIAG_CAT_ORDER=['system','java','minecraft','network','account','launcher'];
+const DIAG_CAT_META={
+  system:{label:'System',icon:'cpu'},
+  java:{label:'Java',icon:'coffee'},
+  minecraft:{label:'Minecraft',icon:'box'},
+  network:{label:'Network',icon:'wifi'},
+  account:{label:'Account',icon:'user'},
+  launcher:{label:'Launcher',icon:'activity'}
+};
+function _t(k,fb){const d=I18N[_curLang];return (d&&d[k])||fb;}
+async function runDiagnostics(){
+  const btn=$('diag-run-btn');
+  if(btn){btn.disabled=true;btn.dataset.prev=btn.innerHTML;btn.innerHTML=ic('refresh',13)+' '+_t('diag_running','Running…');}
+  $('diag-results').innerHTML='<div class="muted">'+esc(_t('diag_running_checks','Running checks… (network probes may take a few seconds)'))+'</div>';
+  const r=await call('run_diagnostics');
+  if(btn){btn.disabled=false;btn.innerHTML=btn.dataset.prev||ic('play',13)+' Run Checks';hydrateIcons(btn);}
+    if(!r.ok){$('diag-results').innerHTML='<div style="color:var(--err)">'+esc(_t('error_prefix','Error: '))+esc(r.error)+'</div>';SoundFX.error();return;}
+  SoundFX.notify();
+  _lastDiag=r;
+  const icons={ok:ic('check-circle',15),warn:ic('alert-triangle',15),error:ic('x-circle',15),info:ic('info',15)};
+  const colors={ok:'var(--ok)',warn:'var(--warn)',error:'var(--err)',info:'var(--tm)'};
+  const s=r.summary||{};
+  const issues=(s.warn||0)+(s.error||0);
+  const sum=$('diag-summary');
+  if(sum){
+    sum.style.display='flex';
+    sum.innerHTML=
+      (issues
+        ? `<span class="diag-chip" style="color:var(--warn)">${ic('alert-triangle',13)} ${issues} ${esc(issues===1?_t('diag_issue_found','issue found'):_t('diag_issues_found','issues found'))}</span>`
+        : `<span class="diag-chip" style="color:var(--ok)">${ic('check-circle',13)} ${esc(_t('diag_all_clear','All clear'))}</span>`)
+      +`<span class="diag-chip" style="color:var(--ok)">${ic('check-circle',12)} ${s.ok||0} ${esc(_t('diag_ok','ok'))}</span>`
+      +((s.warn||0)?`<span class="diag-chip" style="color:var(--warn)">${ic('alert-triangle',12)} ${s.warn} ${esc(s.warn===1?_t('diag_warning','warning'):_t('diag_warnings','warnings'))}</span>`:'')
+      +((s.error||0)?`<span class="diag-chip" style="color:var(--err)">${ic('x-circle',12)} ${s.error} ${esc(s.error===1?_t('diag_error','error'):_t('diag_errors','errors'))}</span>`:'')
+      +`<span class="muted" style="margin-left:auto;font-size:11px">${(s.total||0)} ${esc(_t('diag_checks','checks'))} · ${new Date().toLocaleTimeString()}</span>`;
+  }
+  const groups={};
+  (r.results||[]).forEach(d=>{const c=d.category||'other';(groups[c]||(groups[c]=[])).push(d);});
+  const order=DIAG_CAT_ORDER.filter(c=>groups[c]).concat(Object.keys(groups).filter(c=>!DIAG_CAT_ORDER.includes(c)));
+  $('diag-results').innerHTML=order.map(cat=>{
+    const meta=DIAG_CAT_META[cat]||{label:cat,icon:'info'};
+    const rows=groups[cat].map(d=>`
+      <div class="diag-row">
+        <div class="diag-icon" style="color:${colors[d.status]||'var(--tm)'}">${icons[d.status]||icons.info}</div>
+        <div style="flex:1;min-width:0">
+          <div class="diag-label">${esc(d.key?_t('chk_'+d.key,d.label):d.label)}</div>
+          <div class="diag-detail">${esc(d.dkey?_t(d.dkey,d.detail):d.detail)}</div>
+        </div>
+        ${d.fix&&d.fix.action?`<button class="btn btn-s diag-fix" onclick="diagFix('${esc(d.fix.action)}',this)">${esc(d.fix.key?_t('fix_'+d.fix.key,d.fix.label):d.fix.label||_t('diag_fix','Fix'))}</button>`:''}
+      </div>`).join('');
+    return `<div class="diag-group">${ic(meta.icon,13)} ${esc(_t('diag_'+cat,meta.label))}</div>${rows}`;
+  }).join('');
+}
+async function diagFix(action,btn){
+  if(btn){btn.disabled=true;btn.textContent='…';}
+  const r=await call('diag_fix',action);
+  if(!r.ok){alert(_t('diag_fix_failed','Fix failed: ')+(r.error||'unknown'));if(btn){btn.disabled=false;btn.textContent=_t('diag_fix','Fix');}SoundFX.error();return;}
+  SoundFX.success();
+  if(r.msg){$('sb-status').innerHTML=ic('check-circle',13)+' '+esc(r.msg);setTimeout(()=>$('sb-status').textContent='Ready',2500);}
+  runDiagnostics();
+}
+function copyDiagReport(){
+  if(!_lastDiag||!_lastDiag.results||!_lastDiag.results.length){alert(_t('diag_run_first','Run checks first'));return;}
+  const s=_lastDiag.summary||{};
+  const lines=['FractalLauncher Diagnostic Report','Generated: '+new Date().toLocaleString(),
+    `Summary: ${s.ok||0} ok, ${s.warn||0} warnings, ${s.error||0} errors, ${s.info||0} info`,''];
+  const groups={};
+  _lastDiag.results.forEach(d=>{const c=d.category||'other';(groups[c]||(groups[c]=[])).push(d);});
+  DIAG_CAT_ORDER.concat(Object.keys(groups).filter(c=>!DIAG_CAT_ORDER.includes(c))).forEach(cat=>{
+    if(!groups[cat])return;
+    lines.push('== '+(DIAG_CAT_META[cat]?DIAG_CAT_META[cat].label:cat).toUpperCase()+' ==');
+    groups[cat].forEach(d=>lines.push(`[${String(d.status||'info').toUpperCase()}] ${d.label}: ${d.detail}`));
+    lines.push('');
+  });
+  const text=lines.join('\n');
+  try{navigator.clipboard.writeText(text)}catch(e){
+    const ta=document.createElement('textarea');ta.value=text;
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+  }
+  $('sb-status').innerHTML=ic('check-circle',13)+' '+esc(_t('diag_report_copied','Diagnostic report copied'));
+  setTimeout(()=>$('sb-status').textContent='Ready',2000);
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
+async function loadSettings(){
+  const [r,pr,ct,fp,fu]=await Promise.all([
+    call('get_settings'),
+    call('get_active_profile'),
+    call('get_custom_themes'),
+    call('get_font_presets'),
+    call('get_uploaded_fonts')
+  ]);
+  if(!r.ok)return;
+  const s=r.settings;
+  $('cfg-java').value=s.javaPath||'';
+  $('cfg-authlib').value=s.authlibPath||'';
+  $('cfg-mc-dir').value=s.defaultMcDir||'';
+  $('cfg-hide-tgl').classList.toggle('on',s.hideOnGame!==false);
+  _hideOnGame=s.hideOnGame!==false;
+  if(ct.ok&&ct.themes){
+    Object.entries(ct.themes).forEach(([name,palette])=>{THEMES[name]=palette;addThemeOption(name);});
+  }
+  if(s.theme){$('cfg-theme').value=s.theme;previewTheme(s.theme);}
+  if(s.language){$('cfg-lang').value=s.language;applyLanguage(s.language);}
+  if(pr.ok&&pr.profile){
+    $('cfg-ram').value=pr.profile.ramMb||4096;
+    $('cfg-ram-lbl').textContent=(pr.profile.ramMb||4096)+' MB';
+  }
+  
+  // Fonts
+  if(fp.ok) renderFontPresets(fp.fonts);
+  if(fu.ok) renderUploadedFonts(fu.fonts);
+  if(s.font){
+    $('cfg-font').value=s.font;
+    applyFont(s.font, s.fontType);
+  }
+  if(s.language){
+    const lsel=$('cfg-lang');
+    if(lsel)lsel.value=s.language;
+    applyLanguage(s.language);
+  }
+}
+let _hideOnGame=true;
+function toggleHide(){_hideOnGame=!_hideOnGame;$('cfg-hide-tgl').classList.toggle('on',_hideOnGame);SoundFX.toggleClick();}
+function updateRamLabel(){$('cfg-ram-lbl').textContent=$('cfg-ram').value+' MB';}
+const THEMES={
+  'Lunar':{bg:'#0d0f13',panel:'#13161c',card:'#181c24',accent:'#5865f2',tp:'#e8eaf6',ts:'#8b92a5',tm:'#555e78',border:'#252a38',ok:'#3ba55c'},
+  'Cyber':{bg:'#050505',panel:'#0a0a0f',card:'#0f0f1a',accent:'#ff00ff',tp:'#ffffff',ts:'#cccccc',tm:'#666666',border:'#333344',ok:'#00ff00'},
+  'Forest':{bg:'#0a0f0a',panel:'#0f1a10',card:'#15201a',accent:'#ffd700',tp:'#e8f5e9',ts:'#7daa8a',tm:'#3d6b4f',border:'#1e3326',ok:'#00ff00'},
+  'Eclipse':{bg:'#0a0510',panel:'#101018',card:'#16161f',accent:'#c0c0c0',tp:'#ffffff',ts:'#d0d0d0',tm:'#808080',border:'#303040',ok:'#ffffff'},
+  'Sun':{bg:'#100a05',panel:'#1a1008',card:'#22160a',accent:'#ff6f00',tp:'#fff3e0',ts:'#a07850',tm:'#6b4a28',border:'#3a2010',ok:'#66bb6a'},
+  'Amber':{bg:'#1a0a05',panel:'#251008',card:'#301a0a',accent:'#ff6b35',tp:'#fff1e0',ts:'#f2d0c7',tm:'#a07a5e',border:'#3d251f',ok:'#63c5ff'},
+  'Nebula':{bg:'#050510',panel:'#0a0a18',card:'#10102a',accent:'#d946ef',tp:'#f5f3ff',ts:'#d4b8fa',tm:'#8b6cba',border:'#2a1a35',ok:'#ec4899'},
+  'Matrix':{bg:'#000000',panel:'#0a0a0a',card:'#0f0f0f',accent:'#00ff41',tp:'#00ff41',ts:'#009922',tm:'#005511',border:'#003311',ok:'#00ff41'},
+  'Glass':{bg:'#0a0a10',panel:'#101020',card:'#151530',accent:'#8b5cf6',tp:'#ffffff',ts:'#a5b4fc',tm:'#6366f1',border:'#1a1a35',ok:'#10b981'},
+  'Dark':{bg:'#0a0a0a',panel:'#121212',card:'#1a1a1a',accent:'#a0aec0',tp:'#ffffff',ts:'#e2e8f0',tm:'#718096',border:'#2d3748',ok:'#48bb78'},
+  'Ocean':{bg:'#050a18',panel:'#0a1828',card:'#0f2035',accent:'#0ea5e9',tp:'#ecfeff',ts:'#5eead4',tm:'#0c4a6e',border:'#102030',ok:'#22d3ee'},
+  'Crimson':{bg:'#0f0505',panel:'#1a0505',card:'#221010',accent:'#ef4444',tp:'#fff1f1',ts:'#fca5a5',tm:'#7f1d1d',border:'#3a1515',ok:'#22c55e'},
+  'Aurora':{bg:'#0a0515',panel:'#101025',card:'#151535',accent:'#8b5cf6',tp:'#f5f3ff',ts:'#d4b8fa',tm:'#6366f1',border:'#2a1a35',ok:'#34d399'},
+  'Grid':{bg:'#0a0a0e',panel:'#12121a',card:'#1a1a25',accent:'#0ea5e9',tp:'#e2e8f0',ts:'#94a3b8',tm:'#475569',border:'#2d3748',ok:'#10b981'},
+  'Abyss':{bg:'#050515',panel:'#0a0a1e',card:'#0f0f2a',accent:'#06b6d4',tp:'#e0e8f0',ts:'#a0c4e8',tm:'#5a7ab8',border:'#1a1a35',ok:'#78ff55'},
+  'Green':{bg:'#0d1a0d',panel:'#152515',card:'#1c3520',accent:'#3a5a4c',tp:'#e0e8f0',ts:'#a0c4e8',tm:'#5a7ab8',border:'#2d4a35',ok:'#63c5ff'},
+  'Pink':{bg:'#2a0a1b',panel:'#35152a',card:'#402035',accent:'#ec4899',tp:'#fff0f5',ts:'#f2d0c7',tm:'#a07a5e',border:'#3d253d',ok:'#78ff55'},
+  'Onyx':{bg:'#000005',panel:'#0a0a15',card:'#101020',accent:'#8b5cf6',tp:'#ffffff',ts:'#a5b4fc',tm:'#6366f1',border:'#1a1a35',ok:'#10b981'},
+  'Ice':{bg:'#0e1f2f',panel:'#1a2d40',card:'#263a50',accent:'#0ea5e9',tp:'#ecfeff',ts:'#5eead4',tm:'#0c4a6e',border:'#102030',ok:'#22d3ee'},
+  'Gold':{bg:'#2a1808',panel:'#352510',card:'#40301a',accent:'#f59e0b',tp:'#fff7e4',ts:'#f3e8c4',tm:'#a07a5e',border:'#3d3025',ok:'#63c5ff'},
+};
+function previewTheme(name){
+  const t=THEMES[name];if(!t)return;
+  const r=document.documentElement.style;
+  r.setProperty('--bg',t.bg);r.setProperty('--panel',t.panel);r.setProperty('--card',t.card);
+  r.setProperty('--accent',t.accent);r.setProperty('--glow',t.accent+'66');r.setProperty('--ah',t.accent+'cc');
+  r.setProperty('--tp',t.tp);r.setProperty('--ts',t.ts);r.setProperty('--tm',t.tm);
+  r.setProperty('--border',t.border);r.setProperty('--ok',t.ok);
+  r.setProperty('--card-h',t.card+'ee');
+  if(t.warn)r.setProperty('--warn',t.warn);
+  if(t.err)r.setProperty('--err',t.err);
+}
+async function saveSettings(){
+  const theme=$('cfg-theme').value;
+  const lang=$('cfg-lang').value;
+  const font=$('cfg-font').value;
+  const fontOpt=$('cfg-font').options[$('cfg-font').selectedIndex];
+  const fontType=fontOpt ? fontOpt.dataset.type : 'preset';
+  
+  previewTheme(theme);
+  const r=await call('save_settings',{
+    javaPath:$('cfg-java').value,
+    authlibPath:$('cfg-authlib').value,
+    defaultMcDir:$('cfg-mc-dir').value,
+    hideOnGame:$('cfg-hide-tgl').classList.contains('on'),
+    theme:theme,
+    language:lang,
+    font:font,
+    fontType:fontType
+  });
+  // Also update RAM on active profile
+  const ram=parseInt($('cfg-ram').value)||4096;
+  const ap=await call('get_active_profile');
+  if(ap.ok&&ap.profile) await call('update_profile',ap.profile.id,{ram_mb:ram});
+  if(r.ok){$('sb-status').innerHTML=ic('check-circle',13)+' Settings saved!';SoundFX.notify();setTimeout(()=>$('sb-status').textContent='Ready',2000);}
+  else {SoundFX.error();alert('Error saving: '+r.error);}
+}
+async function browseJava(){const r=await call('browse_file','Select javaw.exe');if(r.ok&&r.path)$('cfg-java').value=r.path;}
+async function browseAuthlib(){const r=await call('browse_file','Select authlib-injector.jar');if(r.ok&&r.path)$('cfg-authlib').value=r.path;}
+async function browseMcDir(){const r=await call('browse_folder','Select Minecraft Directory');if(r.ok&&r.path)$('cfg-mc-dir').value=r.path;}
+
+async function exportTheme() {
+  const name = $('cfg-theme').value;
+  const palette = THEMES[name];
+  if (!palette) return;
+  const themeData = { name, palette };
+  const jsonStr = JSON.stringify(themeData);
+  const code = btoa(unescape(encodeURIComponent(jsonStr)));
+  const r = await call('save_theme_to_file', name, jsonStr);
+  if (r.ok) {
+    alert(`Theme exported to: ${r.path}\n\nShort Code (copied to clipboard):\n${code}`);
+    navigator.clipboard.writeText(code);
+  } else {
+    prompt("Copy this theme code:", code);
+  }
+}
+
+async function importTheme() {
+  const code = prompt("Paste your theme short code or JSON:");
+  if (!code) return;
+  let themeData;
+  try {
+    if (code.trim().startsWith('{')) {
+      themeData = JSON.parse(code);
+    } else {
+      themeData = JSON.parse(atob(code));
+    }
+  } catch (e) {
+    alert("Invalid theme code!");
+    return;
+  }
+  if (themeData.name && themeData.palette) {
+    THEMES[themeData.name] = themeData.palette;
+    addThemeOption(themeData.name);
+    $('cfg-theme').value = themeData.name;
+    previewTheme(themeData.name);
+    await call('import_custom_theme', themeData.name, themeData.palette);
+    alert(`Theme "${themeData.name}" imported successfully!`);
+  }
+}
+
+// ── FONTS ────────────────────────────────────────────────────────────────────
+function renderFontPresets(fonts){
+  const g=$('font-presets'); g.innerHTML='';
+  fonts.forEach(f=>{
+    const o=document.createElement('option');
+    o.value=f; o.textContent=f; o.dataset.type='preset';
+    g.appendChild(o);
+  });
+}
+function renderUploadedFonts(fonts){
+  const g=$('font-uploaded'); g.innerHTML='';
+  const list=$('uploaded-fonts-list'); list.innerHTML='';
+  fonts.forEach(f=>{
+    const o=document.createElement('option');
+    o.value=f.name; o.textContent=f.name; o.dataset.type='uploaded'; o.dataset.path=f.path;
+    g.appendChild(o);
+    
+    const tag=document.createElement('div');
+    tag.className='badge b-p';
+    tag.style.cssText='display:flex;align-items:center;gap:6px;cursor:default';
+    tag.innerHTML=`<span>${f.name}</span><span style="cursor:pointer;opacity:.6;display:inline-flex" onclick="deleteFont('${f.filename}')">${ic('x',11)}</span>`;
+    list.appendChild(tag);
+    
+    // Inject @font-face
+    const id='font-face-'+f.name;
+    if(!$(id)){
+      const s=document.createElement('style');
+      s.id=id;
+      s.textContent=`@font-face { font-family: "${f.name}"; src: url("file:///${f.path.replace(/\\/g,'/')}"); }`;
+      document.head.appendChild(s);
+    }
+  });
+}
+async function uploadFont(){
+  const r=await call('upload_font');
+  if(r.ok){
+    const fu=await call('get_uploaded_fonts');
+    if(fu.ok) renderUploadedFonts(fu.fonts);
+    $('cfg-font').value=r.name;
+    applyFont(r.name, 'uploaded');
+  }
+}
+async function deleteFont(fn){
+  if(confirm('Delete font '+fn+'?')){
+    await call('delete_font',fn);
+    const fu=await call('get_uploaded_fonts');
+    if(fu.ok) renderUploadedFonts(fu.fonts);
+  }
+}
+function applyFontFromSelect(val){
+  const opt=$('cfg-font').options[$('cfg-font').selectedIndex];
+  applyFont(val, opt.dataset.type);
+}
+function applyFont(name, type){
+  if(type==='preset'){
+    document.body.style.fontFamily=`"${name}", sans-serif`;
+  } else {
+    document.body.style.fontFamily=`"${name}", sans-serif`;
+  }
+}
+
+// ── CUSTOM THEMES ──────────────────────────────────────────────────────────
+function addThemeOption(name){
+  const sel=$('cfg-theme');
+  if(!sel||[...sel.options].some(o=>o.value===name))return;
+  const opt=document.createElement('option');
+  opt.value=name;opt.textContent=name;
+  sel.appendChild(opt);
+}
+
+// ── THEME EDITOR ────────────────────────────────────────────────────────────
+const TE_COLORS=[
+  ['bg','Background'],['panel','Panel'],['card','Card'],['accent','Primary Color'],
+  ['tp','Text Primary'],['ts','Text Secondary'],['tm','Text Muted'],
+  ['border','Border'],['ok','Success'],['warn','Warning'],['err','Error']
+];
+let _teDraft=null;
+function _teLabel(key){
+  const f=TE_COLORS.find(c=>c[0]===key);
+  return f?f[1]:key;
+}
+function openThemeEditor(){
+  const name=$('cfg-theme').value;
+  const base=THEMES[name]||{};
+  _teDraft=Object.assign({},base);
+  const list=$('te-list');
+  list.innerHTML='';
+  TE_COLORS.forEach(([key,label])=>{
+    if(_teDraft[key]===undefined)return;   // only colors this theme actually defines
+    const val=_teDraft[key];
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:8px';
+    row.innerHTML=
+      '<span style="font-size:12px;font-weight:600;flex:1">'+esc(label)+'</span>'+
+      '<span class="row" style="gap:8px">'+
+        '<input type="color" data-te="'+key+'" value="'+esc(val)+'" title="'+esc(label)+'" style="width:38px;height:26px;padding:0;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer">'+
+        '<code data-te-hex="'+key+'" style="font-size:11px;color:var(--ts);min-width:58px;text-align:right">'+esc(val)+'</code>'+
+        '<button class="btn btn-s" data-te-save="'+key+'">Save</button>'+
+      '</span>';
+    list.appendChild(row);
+  });
+  list.querySelectorAll('[data-te-save]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const key=btn.getAttribute('data-te-save');
+      const input=list.querySelector('input[data-te="'+key+'"]');
+      _teDraft[key]=input.value;
+      list.querySelector('code[data-te-hex="'+key+'"]').textContent=input.value;
+      SoundFX.success();
+      const st=$('custom-theme-status');
+      st.innerHTML=ic('check',13)+' '+esc(_teLabel(key))+' set to '+esc(input.value)+'.';
+      st.style.color='var(--ok)';
+    });
+  });
+  const st=$('custom-theme-status');
+  st.innerHTML=ic('edit',13)+' Editing "'+esc(name)+'" \u2014 pick colors, then Save.';
+  st.style.color='var(--ts)';
+  openModal('modal-theme-editor');
+}
+async function saveEditedTheme(){
+  if(!_teDraft){closeModal('modal-theme-editor');return;}
+  // commit whatever is currently in the pickers (covers rows whose per-color Save was skipped)
+  document.querySelectorAll('#te-list input[data-te]').forEach(inp=>{
+    _teDraft[inp.getAttribute('data-te')]=inp.value;
+  });
+  let name=prompt('Name your theme (optional):','');
+  if(name===null)return;               // Cancel aborts the save
+  name=name.trim();
+  if(!name){
+    let n=1;
+    while(('Custom '+n) in THEMES)n++;
+    name='Custom '+n;
+  }
+  THEMES[name]=Object.assign({},_teDraft);
+  addThemeOption(name);
+  $('cfg-theme').value=name;
+  previewTheme(name);
+  const r=await call('save_custom_theme',name,THEMES[name]);
+  closeModal('modal-theme-editor');
+  const st=$('custom-theme-status');
+  if(r.ok){
+    SoundFX.success();
+    st.innerHTML=ic('check',13)+' Theme "'+esc(name)+'" saved and applied!';
+    st.style.color='var(--ok)';
+  }else{
+    SoundFX.error();
+    st.innerHTML=ic('x',13)+' '+esc(r.error||'save failed');
+    st.style.color='var(--err)';
+  }
+}
+
+// ── MODALS ────────────────────────────────────────────────────────────────────
+function openModal(id){
+  $(id).classList.add('open');
+  SoundFX.modalOpen();
+}
+function closeModal(id){
+  $(id).classList.remove('open');
+  SoundFX.modalClose();
+}
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o){closeModal(o.id);}});
+});
+
+// ── TOOLTIP ───────────────────────────────────────────────────────────────────
+const tip=$('tip');
+document.addEventListener('mouseover',e=>{
+  if(e.target.title){
+    tip.textContent=e.target.title;tip.style.opacity=1;
+    tip.style.left=e.pageX+10+'px';tip.style.top=e.pageY+10+'px';
+    e.target.dataset.tt=e.target.title;e.target.removeAttribute('title');
+  }
+});
+document.addEventListener('mouseout',e=>{
+  if(e.target.dataset.tt){e.target.title=e.target.dataset.tt;tip.style.opacity=0;}
+});
+document.addEventListener('mousemove',e=>{
+  if(tip.style.opacity==='1'){tip.style.left=e.pageX+10+'px';tip.style.top=e.pageY+10+'px';}
+});
+
+// ── PARTICLES ────────────────────────────────────────────────────────────────
+const cvs=$('particles'),ctx=cvs.getContext('2d');
+let parts=[];
+function resizeCvs(){cvs.width=cvs.parentElement.offsetWidth;cvs.height=cvs.parentElement.offsetHeight;}
+window.addEventListener('resize',resizeCvs);resizeCvs();
+function mkPart(){return{x:Math.random()*cvs.width,y:Math.random()*cvs.height,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,s:Math.random()*1.8,a:Math.random()*.4};}
+for(let i=0;i<50;i++)parts.push(mkPart());
+let _partRunning=false,_partRafId=0;
+function _partFrame(){ctx.clearRect(0,0,cvs.width,cvs.height);
+parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;
+  if(p.x<0)p.x=cvs.width;if(p.x>cvs.width)p.x=0;
+  if(p.y<0)p.y=cvs.height;if(p.y>cvs.height)p.y=0;
+  ctx.fillStyle=`rgba(88,101,242,${p.a})`;ctx.beginPath();ctx.arc(p.x,p.y,p.s,0,Math.PI*2);ctx.fill();
+});
+}
+function _partActive(){const home=$('pg-home');return document.visibilityState!=='hidden'&&home&&home.classList.contains('active');}
+function _partLoop(){if(!_partRunning){_partRafId=0;return;}_partFrame();_partRafId=requestAnimationFrame(_partLoop);}
+function startParticles(){if(_partRunning)return;_partRunning=true;resizeCvs();if(!_partRafId)_partRafId=requestAnimationFrame(_partLoop);}
+function stopParticles(){_partRunning=false;if(_partRafId){cancelAnimationFrame(_partRafId);_partRafId=0;}}
+document.addEventListener('visibilitychange',()=>{if(_partActive())startParticles();else stopParticles();});
+new MutationObserver(()=>{if(_partActive())startParticles();else stopParticles();}).observe(document.body,{attributes:true,attributeFilter:['class'],subtree:true});
+if(_partActive())startParticles();else _partFrame();
+
+// ── External profile detection ───────────────────────────────────────────────
+let _newProfCandidates = [];
+async function checkNewProfiles(){
+  try{
+    const r = await call('detect_external_profiles');
+    if(!(r && r.ok) || !r.profiles || !r.profiles.length) return;
+    _newProfCandidates = r.profiles;
+    const list = $('newprof-list');
+    list.innerHTML = r.profiles.map(p =>
+      '<div style="padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px">'+
+        '<div style="font-weight:600;font-size:13px">'+esc(p.name||p.version)+'</div>'+
+        '<div class="muted" style="font-size:11px;margin-top:3px">'+
+          'Minecraft '+esc(p.version)+
+          (p.loader && p.loader!=='vanilla' ? ' · '+esc(p.loader.charAt(0).toUpperCase()+p.loader.slice(1)) : '')+
+          (p.gameDir ? ' · custom game dir' : '')+
+        '</div>'+
+      '</div>'
+    ).join('');
+    openModal('modal-newprof');
+    hydrateIcons(list);
+  }catch(e){ console.warn('checkNewProfiles failed:', e); }
+}
+async function importNewProfiles(){
+  if(!_newProfCandidates.length){ closeModal('modal-newprof'); return; }
+  const btn = event && event.target ? event.target.closest('button') : null;
+  if(btn){ btn.disabled = true; btn.dataset.prev = btn.innerHTML; btn.innerHTML = ic('refresh',13)+' Adding…'; }
+  try{
+    const r = await call('import_profiles', _newProfCandidates);
+    closeModal('modal-newprof');
+    if(r && r.ok){
+      const n = r.added||0;
+      $('sb-status').textContent = n ? 'Added '+n+' profile'+(n===1?'':'s') : 'No profiles added';
+      setTimeout(()=>{ $('sb-status').textContent='Ready'; }, 3000);
+      SoundFX.success && SoundFX.success();
+      if(curPage==='profiles') loadProfiles();
+      loadHome();
+    }else{
+      SoundFX.error && SoundFX.error();
+      $('sb-status').textContent = 'Import failed';
+      setTimeout(()=>{ $('sb-status').textContent='Ready'; }, 3000);
+    }
+  }catch(e){
+    console.warn('importNewProfiles failed:', e);
+    closeModal('modal-newprof');
+  }
+  _newProfCandidates = [];
+}
+async function dismissNewProfiles(){
+  const keys = _newProfCandidates.map(p=>p.key).filter(Boolean);
+  _newProfCandidates = [];
+  closeModal('modal-newprof');
+  if(keys.length){
+    try{ await call('dismiss_external_profiles', keys); }catch(e){ console.warn('dismiss failed:', e); }
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function openUrl(url){window.open(url,'_blank');}
+
+// ── Global click sound for all buttons via event delegation ──────────────────
+document.addEventListener('click', e => {
+  // Play click sound on buttons, sidebar items, nav items, and toggle switches
+  const target = e.target.closest('.btn, .ni, .tgl, .mt-btn, .ver-item, .cape-card');
+  if (target) {
+    // Different sounds for different elements
+    if (target.classList.contains('btn-ok')) SoundFX.pop();
+    else if (target.classList.contains('btn-d')) SoundFX.pop();
+    else if (target.classList.contains('tgl')) SoundFX.toggleClick();
+    else SoundFX.click();
+  }
+});
+
+// ── Keyboard shortcut: toggle sounds with Ctrl+S (press twice quickly) ───────
+let _soundKeyCount = 0;
+let _soundKeyTimer = null;
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault();
+    _soundKeyCount++;
+    if (_soundKeyCount >= 2) {
+      const on = SoundFX.toggle();
+      $('sb-status').innerHTML = on ? ic('volume-2',13)+' Sounds on' : ic('volume-x',13)+' Sounds off';
+      setTimeout(() => $('sb-status').textContent = 'Ready', 1500);
+      _soundKeyCount = 0;
+      clearTimeout(_soundKeyTimer);
+    } else {
+      clearTimeout(_soundKeyTimer);
+      _soundKeyTimer = setTimeout(() => { _soundKeyCount = 0; }, 500);
+    }
+  }
+});
+
+// pywebview fires this when the JS bridge is ready
+// Boot loadHome with verification + retry: the very first API calls made
+// synchronously inside 'pywebviewready' can fail while the JS↔Python RPC
+// bridge is still warming up (known pywebview startup race — showed as a
+// stuck "Loading…" home screen since the 1.2.0 UI overhaul). Retry until
+// every boot call actually returns ok, with a hang watchdog per attempt.
+let _homeBooted = false, _homeBootTries = 0;
+async function _bootHomeOnce(){
+  if(_homeBooted) return;
+  _homeBooted = true;
+  let settled = false;
+  const retry = () => {
+    if(settled) return;
+    settled = true;
+    _homeBooted = false;
+    if(_homeBootTries++ < 25) setTimeout(_bootHomeOnce, 400);
+    else console.warn('Home boot gave up after', _homeBootTries, 'tries');
+  };
+  const watchdog = setTimeout(retry, 2500);
+  try {
+    const ok = await loadHome();
+    clearTimeout(watchdog);
+    if(ok) settled = true;
+    else retry();
+  } catch(e) {
+    console.warn('loadHome boot attempt failed:', e);
+    clearTimeout(watchdog);
+    retry();
+  }
+}
+// Settings/themes/fonts boot — same startup race as loadHome, same retry.
+let _settingsBooted = false, _settingsTries = 0;
+async function _bootSettingsOnce(){
+  if(_settingsBooted) return;
+  _settingsBooted = true;
+  let settled = false;
+  const retry = () => {
+    if(settled) return;
+    settled = true;
+    _settingsBooted = false;
+    if(_settingsTries++ < 25) setTimeout(_bootSettingsOnce, 400);
+  };
+  const watchdog = setTimeout(retry, 2500);
+  let r, ct, fp, fu;
+  try {
+    [r,ct,fp,fu] = await Promise.all([
+      call('get_settings'),
+      call('get_custom_themes'),
+      call('get_font_presets'),
+      call('get_uploaded_fonts')
+    ]);
+    clearTimeout(watchdog);
+  } catch(e) {
+    clearTimeout(watchdog);
+    retry();
+    return;
+  }
+  if(!(r.ok&&ct.ok&&fp.ok&&fu.ok)){ retry(); return; }
+  settled = true;
+  if(ct.themes){
+    Object.entries(ct.themes).forEach(([name,palette])=>{THEMES[name]=palette;addThemeOption(name);});
+  }
+  renderFontPresets(fp.fonts||[]);
+  renderUploadedFonts(fu.fonts||[]);
+  const s=r.settings;
+  if(s.theme){
+    const sel=$('cfg-theme');
+    if(sel)sel.value=s.theme;
+    previewTheme(s.theme);
+  }
+  if(s.font){
+    const fsel=$('cfg-font');
+    if(fsel)fsel.value=s.font;
+    applyFont(s.font, s.fontType);
+  }
+  maybeStartOnboarding();
+}
+// ── ONBOARDING (product-tour spotlight) ─────────────────────────────────────
+let _onbStep=0, _onbStarted=false, _onbActive=false, _onbRaf=0;
+const ONB_STEPS=6;
+const ONB_DEFS=[null,
+  {page:'accounts',target:'btn-add-account'},
+  {page:'profiles',target:'btn-new-profile'},
+  {page:'home',target:'h-play-btn'},
+  null,null];
+function onbShow(show){
+  const a=$('onboarding'), b=$('onb-card');
+  if(a)a.style.display=show?'block':'none';
+  if(b)b.style.display=show?'flex':'none';
+}
+function maybeStartOnboarding(){
+  if(_onbStarted) return; _onbStarted=true;
+  call('get_first_launch').then(r=>{
+    if(!(r&&r.ok&&r.firstLaunch)) return;
+    if(!$('onb-card')) return;
+    _onbStep=0; _onbActive=true;
+    onbShow(true);
+    SoundFX.click&&SoundFX.click();
+    _onbRender();
+    cancelAnimationFrame(_onbRaf);
+    _onbRaf=requestAnimationFrame(_onbLayoutLoop);
+  }).catch(()=>{});
+}
+function _onbLayoutLoop(){
+  if(!_onbActive) return;
+  _onbLayout();
+  _onbRaf=requestAnimationFrame(_onbLayoutLoop);
+}
+function _onbLayout(){
+  const card=$('onb-card'); if(!card) return;
+  const vw=innerWidth, vh=innerHeight;
+  const def=ONB_DEFS[_onbStep];
+  let rect=null;
+  if(def&&def.target){
+    const t=$(def.target);
+    if(t&&t.getClientRects().length){
+      const r=t.getBoundingClientRect();
+      if(r.width>0&&r.height>0) rect=r;
+    }
+  }
+  let L=0,T=0,R=0,B=0;
+  if(rect){
+    const pad=7;
+    L=Math.max(0,rect.left-pad); T=Math.max(0,rect.top-pad);
+    R=Math.min(vw,rect.right+pad); B=Math.min(vh,rect.bottom+pad);
+  }
+  const dt=$('onb-dt'),dl=$('onb-dl'),dr=$('onb-dr'),db=$('onb-db');
+  if(dt){dt.style.left='0px';dt.style.top='0px';dt.style.width=vw+'px';dt.style.height=T+'px';}
+  if(dl){dl.style.left='0px';dl.style.top=T+'px';dl.style.width=L+'px';dl.style.height=Math.max(0,B-T)+'px';}
+  if(dr){dr.style.left=R+'px';dr.style.top=T+'px';dr.style.width=Math.max(0,vw-R)+'px';dr.style.height=Math.max(0,B-T)+'px';}
+  if(db){db.style.left='0px';db.style.top=B+'px';db.style.width=vw+'px';db.style.height=Math.max(0,vh-B)+'px';}
+  const ring=$('onb-ring');
+  if(ring){
+    if(rect){ring.style.display='block';ring.style.left=L+'px';ring.style.top=T+'px';ring.style.width=(R-L)+'px';ring.style.height=(B-T)+'px';}
+    else ring.style.display='none';
+  }
+  const W=card.offsetWidth||340, H=card.offsetHeight||220;
+  const PAD=14, GAP=20;
+  let x,y,side=null;
+  if(rect){
+    if(rect.right+GAP+W+PAD<=vw) side='right';
+    else if(rect.left-GAP-W-PAD>=0) side='left';
+    else if(rect.bottom+GAP+H+PAD<=vh) side='bottom';
+    else if(rect.top-GAP-H-PAD>=0) side='top';
+    else side='right';
+    const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+    if(side==='right'){x=rect.right+GAP; y=cy-H/2;}
+    else if(side==='left'){x=rect.left-GAP-W; y=cy-H/2;}
+    else if(side==='bottom'){x=cx-W/2; y=rect.bottom+GAP;}
+    else {x=cx-W/2; y=rect.top-GAP-H;}
+  } else { x=(vw-W)/2; y=(vh-H)/2; }
+  x=Math.min(Math.max(PAD,x), Math.max(PAD,vw-W-PAD));
+  y=Math.min(Math.max(PAD,y), Math.max(PAD,vh-H-PAD));
+  card.style.left=Math.round(x)+'px';
+  card.style.top=Math.round(y)+'px';
+  const arrow=$('onb-arrow');
+  if(arrow){
+    if(rect&&side){
+      arrow.style.display='block';
+      arrow.style.left='';arrow.style.right='';arrow.style.top='';arrow.style.bottom='';
+      arrow.className='onb-arrow';
+      const acx=rect.left+rect.width/2-x, acy=rect.top+rect.height/2-y;
+      if(side==='right'){arrow.classList.add('a-left');arrow.style.left='-12px';arrow.style.top=Math.round(Math.min(Math.max(14,acy-7),H-21))+'px';}
+      else if(side==='left'){arrow.classList.add('a-right');arrow.style.right='-12px';arrow.style.top=Math.round(Math.min(Math.max(14,acy-7),H-21))+'px';}
+      else if(side==='bottom'){arrow.classList.add('a-top');arrow.style.top='-12px';arrow.style.left=Math.round(Math.min(Math.max(14,acx-7),W-21))+'px';}
+      else{arrow.classList.add('a-bottom');arrow.style.bottom='-12px';arrow.style.left=Math.round(Math.min(Math.max(14,acx-7),W-21))+'px';}
+    } else arrow.style.display='none';
+  }
+}
+function _onbFillTour(){
+  const g=$('onb-tour'); if(!g||g.dataset.filled) return; g.dataset.filled='1';
+  document.querySelectorAll('.ni[data-p]').forEach(n=>{
+    const key=n.getAttribute('data-i18n-title')||n.dataset.p;
+    const d=document.createElement('div'); d.className='ot';
+    const svg=n.querySelector('svg');
+    if(svg) d.appendChild(svg.cloneNode(true));
+    const lbl=document.createElement('div');
+    lbl.setAttribute('data-i18n', key);
+    lbl.textContent=_t(key, n.dataset.p.charAt(0).toUpperCase()+n.dataset.p.slice(1));
+    d.appendChild(lbl);
+    g.appendChild(d);
+  });
+}
+function _onbRender(){
+  const card=$('onb-card'); if(!card) return;
+  card.querySelectorAll('.onb-slide').forEach((sl,i)=>{sl.style.display=(i===_onbStep)?'block':'none';});
+  if(_onbStep===4) _onbFillTour();
+  const def=ONB_DEFS[_onbStep];
+  if(def&&def.page&&typeof goto==='function'&&curPage!==def.page) goto(def.page);
+  if(def&&def.target){
+    const t=$(def.target);
+    try{ if(t) t.scrollIntoView({block:'nearest'}); }catch(e){}
+  }
+  const cnt=$('onb-step-count');
+  if(cnt) cnt.textContent=_t('onb_step_of','Step {n} of {total}').replace('{n}',_onbStep+1).replace('{total}',ONB_STEPS);
+  const back=$('onb-back'); if(back) back.style.display=_onbStep===0?'none':'inline-flex';
+  const next=$('onb-next');
+  if(next){
+    const lbl=next.querySelector('span');
+    if(lbl) lbl.textContent=(_onbStep===ONB_STEPS-1)?_t('onb_finish','Get started'):_t('onb_next','Next');
+  }
+}
+function onbNext(){
+  if(_onbStep<ONB_STEPS-1){_onbStep++;_onbRender();SoundFX.click&&SoundFX.click();}
+  else onbFinish();
+}
+function onbBack(){ if(_onbStep>0){_onbStep--;_onbRender();} }
+function onbSkip(){ onbFinish(); }
+function onbGoto(page){ goto(page); }
+function onbFinish(){
+  _onbActive=false;
+  cancelAnimationFrame(_onbRaf);
+  onbShow(false);
+  call('complete_first_launch').catch(()=>{});
+  if($('sb-status')) $('sb-status').innerHTML=ic('check',13)+' '+esc(_t('onb_done_title',"You're all set!"));
+  setTimeout(()=>{if($('sb-status'))$('sb-status').textContent='Ready';},2500);
+}
+window.addEventListener('keydown',function(e){
+  if(!_onbActive) return;
+  if(e.key==='Escape'){e.preventDefault();onbSkip();}
+  else if(e.key==='ArrowRight'){e.preventDefault();onbNext();}
+  else if(e.key==='ArrowLeft'){e.preventDefault();onbBack();}
+});
+
+window.addEventListener('pywebviewready', function(){
+  _api = window.pywebview.api;
+  console.log('pywebview API ready');
+  _bootSettingsOnce();
+  _bootHomeOnce();
+  setTimeout(checkNewProfiles, 1500);
+});
+
+// Fallback: poll in case event already fired
+window.addEventListener('load', function(){
+  function poll(){
+    if(window.pywebview && window.pywebview.api){
+      _api = window.pywebview.api;
+      _bootHomeOnce();
+    } else {
+      setTimeout(poll, 50);
+    }
+  }
+  // Give pywebviewready a chance to fire first
+  setTimeout(poll, 200);
+});
+
+// ── Scroll saver for mod installs ───────────────────────────────────
+(function() {
+    let _scrollStates = new Map();
+    let _observer = null;
+
+    function _save() {
+        const activePage = document.querySelector('.page.active');
+        if (activePage) {
+            _scrollStates.set(activePage.id, activePage.scrollTop);
+        }
+        const installedList = document.querySelector('.mod-installed');
+        if (installedList) {
+            _scrollStates.set('mod-installed', installedList.scrollTop);
+        }
+    }
+
+    function _restore() {
+        requestAnimationFrame(() => {
+            const activePage = document.querySelector('.page.active');
+            if (activePage && _scrollStates.has(activePage.id)) {
+                activePage.scrollTop = _scrollStates.get(activePage.id);
+            }
+            const installedList = document.querySelector('.mod-installed');
+            if (installedList && _scrollStates.has('mod-installed')) {
+                installedList.scrollTop = _scrollStates.get('mod-installed');
+            }
+        });
+    }
+
+    document.addEventListener('click', _save, true);
+
+    function _startObserver() {
+        if (_observer) _observer.disconnect();
+        _observer = new MutationObserver((mutations) => {
+            // Only restore if nodes were added (content reloaded)
+            if (mutations.some(m => m.addedNodes.length > 0)) {
+                _restore();
+            }
+        });
+        
+        const config = { childList: true, subtree: true };
+        const targets = ['.page.active', '.mod-installed'];
+        targets.forEach(sel => {
+            const el = document.querySelector(sel);
+            if (el) _observer.observe(el, config);
+        });
+    }
+
+    // Re-bind observer when page changes
+    const originalGoto = window.goto;
+    window.goto = function(id) {
+        if (typeof originalGoto === 'function') originalGoto(id);
+        setTimeout(_startObserver, 50);
+    };
+
+    document.addEventListener('DOMContentLoaded', _startObserver);
+    setTimeout(_startObserver, 1000);
+})();
+</script>
+</body>
+</html>

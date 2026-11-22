@@ -1,0 +1,257 @@
+"""
+FractalLauncher UI Theme — Lunar Client / Feather inspired dark aesthetic.
+"""
+
+# ── Palette ───────────────────────────────────────────────────────────────────
+BG_DARK        = "#0d0f13"
+BG_PANEL       = "#13161c"
+BG_CARD        = "#181c24"
+BG_INPUT       = "#1e2230"
+BG_HOVER       = "#232840"
+ACCENT         = "#5865f2"   # Electric blue-purple
+ACCENT_HOVER   = "#6d7af5"
+ACCENT_DARK    = "#3d4dbf"
+SUCCESS        = "#3ba55d"
+SUCCESS_HOVER  = "#4cc870"
+DANGER         = "#ed4245"
+WARN           = "#faa61a"
+TEXT_PRIMARY   = "#e8eaf6"
+TEXT_SECONDARY = "#8b92a5"
+TEXT_MUTED     = "#555e78"
+BORDER         = "#252a38"
+BORDER_ACTIVE  = "#3d4566"
+SCROLLBAR      = "#2a2f42"
+
+# ── Typography ────────────────────────────────────────────────────────────────
+FONT_FAMILY    = "Segoe UI"   # Falls back gracefully on all platforms
+FONT_TITLE     = (FONT_FAMILY, 22, "bold")
+FONT_HEADING   = (FONT_FAMILY, 13, "bold")
+FONT_SUBHEAD   = (FONT_FAMILY, 11, "bold")
+FONT_BODY      = (FONT_FAMILY, 11)
+FONT_SMALL     = (FONT_FAMILY, 10)
+FONT_TINY      = (FONT_FAMILY, 9)
+FONT_MONO      = ("Consolas", 10)   # Console output
+
+# ── Geometry ──────────────────────────────────────────────────────────────────
+WIN_W          = 1050
+WIN_H          = 680
+SIDEBAR_W      = 220
+CORNER_RADIUS  = 10
+BTN_RADIUS     = 8
+CARD_RADIUS    = 10
+PAD            = 16
+PAD_SM         = 8
+PAD_XS         = 4
+
+# ── customtkinter appearance ──────────────────────────────────────────────────
+CTK_THEME = {
+    "CTk": {
+        "fg_color": [BG_DARK, BG_DARK],
+    },
+    "CTkFrame": {
+        "fg_color": [BG_PANEL, BG_PANEL],
+        "border_color": [BORDER, BORDER],
+        "corner_radius": CORNER_RADIUS,
+    },
+    "CTkButton": {
+        "fg_color": [ACCENT, ACCENT],
+        "hover_color": [ACCENT_HOVER, ACCENT_HOVER],
+        "text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "border_color": [ACCENT_DARK, ACCENT_DARK],
+        "corner_radius": BTN_RADIUS,
+    },
+    "CTkEntry": {
+        "fg_color": [BG_INPUT, BG_INPUT],
+        "border_color": [BORDER, BORDER],
+        "text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "placeholder_text_color": [TEXT_MUTED, TEXT_MUTED],
+        "corner_radius": BTN_RADIUS,
+    },
+    "CTkLabel": {
+        "text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+    },
+    "CTkComboBox": {
+        "fg_color": [BG_INPUT, BG_INPUT],
+        "border_color": [BORDER, BORDER],
+        "button_color": [BG_HOVER, BG_HOVER],
+        "button_hover_color": [ACCENT, ACCENT],
+        "dropdown_fg_color": [BG_CARD, BG_CARD],
+        "text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "dropdown_text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "corner_radius": BTN_RADIUS,
+    },
+    "CTkScrollbar": {
+        "fg_color": [BG_PANEL, BG_PANEL],
+        "button_color": [SCROLLBAR, SCROLLBAR],
+        "button_hover_color": [BORDER_ACTIVE, BORDER_ACTIVE],
+        "corner_radius": 4,
+    },
+    "CTkTextbox": {
+        "fg_color": [BG_DARK, BG_DARK],
+        "border_color": [BORDER, BORDER],
+        "text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "scrollbar_button_color": [SCROLLBAR, SCROLLBAR],
+        "corner_radius": CARD_RADIUS,
+    },
+    "CTkSlider": {
+        "fg_color": [BORDER, BORDER],
+        "progress_color": [ACCENT, ACCENT],
+        "button_color": [ACCENT_HOVER, ACCENT_HOVER],
+        "button_hover_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "corner_radius": 4,
+    },
+    "CTkCheckBox": {
+        "fg_color": [ACCENT, ACCENT],
+        "hover_color": [ACCENT_HOVER, ACCENT_HOVER],
+        "border_color": [BORDER_ACTIVE, BORDER_ACTIVE],
+        "checkmark_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "corner_radius": 4,
+    },
+    "CTkSwitch": {
+        "fg_color": [BORDER, BORDER],
+        "progress_color": [ACCENT, ACCENT],
+        "button_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "button_hover_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+    },
+    "CTkTabview": {
+        "fg_color": [BG_PANEL, BG_PANEL],
+        "segmented_button_fg_color": [BG_DARK, BG_DARK],
+        "segmented_button_selected_color": [ACCENT, ACCENT],
+        "segmented_button_selected_hover_color": [ACCENT_HOVER, ACCENT_HOVER],
+        "segmented_button_unselected_color": [BG_DARK, BG_DARK],
+        "segmented_button_unselected_hover_color": [BG_HOVER, BG_HOVER],
+        "text_color": [TEXT_SECONDARY, TEXT_SECONDARY],
+        "text_color_disabled": [TEXT_MUTED, TEXT_MUTED],
+        "border_color": [BORDER, BORDER],
+        "corner_radius": CARD_RADIUS,
+    },
+    "CTkProgressBar": {
+        "fg_color": [BG_INPUT, BG_INPUT],
+        "progress_color": [ACCENT, ACCENT],
+        "border_color": [BORDER, BORDER],
+        "corner_radius": 4,
+    },
+    "CTkOptionMenu": {
+        "fg_color": [BG_INPUT, BG_INPUT],
+        "button_color": [BG_HOVER, BG_HOVER],
+        "button_hover_color": [ACCENT, ACCENT],
+        "dropdown_fg_color": [BG_CARD, BG_CARD],
+        "text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "dropdown_text_color": [TEXT_PRIMARY, TEXT_PRIMARY],
+        "corner_radius": BTN_RADIUS,
+    },
+}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  THEME PRESET SYSTEM
+# ══════════════════════════════════════════════════════════════════════════════
+
+THEMES = {
+    "Lunar (Default)": {
+        "BG_DARK": "#0d0f13", "BG_PANEL": "#13161c", "BG_CARD": "#181c24",
+        "BG_INPUT": "#1e2230", "BG_HOVER": "#232840",
+        "ACCENT": "#5865f2", "ACCENT_HOVER": "#6d7af5", "ACCENT_DARK": "#3d4dbf",
+        "SUCCESS": "#3ba55d", "SUCCESS_HOVER": "#4cc870",
+        "DANGER": "#ed4245", "WARN": "#faa61a",
+        "TEXT_PRIMARY": "#e8eaf6", "TEXT_SECONDARY": "#8b92a5", "TEXT_MUTED": "#555e78",
+        "BORDER": "#252a38", "BORDER_ACTIVE": "#3d4566", "SCROLLBAR": "#2a2f42",
+    },
+    "Midnight Green": {
+        "BG_DARK": "#0a0f0d", "BG_PANEL": "#0f1a14", "BG_CARD": "#152019",
+        "BG_INPUT": "#1a2b20", "BG_HOVER": "#1f3326",
+        "ACCENT": "#2ecc71", "ACCENT_HOVER": "#4cd787", "ACCENT_DARK": "#1e8a4a",
+        "SUCCESS": "#27ae60", "SUCCESS_HOVER": "#2ecc71",
+        "DANGER": "#e74c3c", "WARN": "#f39c12",
+        "TEXT_PRIMARY": "#e8f5e9", "TEXT_SECONDARY": "#7daa8a", "TEXT_MUTED": "#3d6b4f",
+        "BORDER": "#1e3326", "BORDER_ACTIVE": "#2e5c3e", "SCROLLBAR": "#234433",
+    },
+    "Crimson": {
+        "BG_DARK": "#0f0a0a", "BG_PANEL": "#1a0f0f", "BG_CARD": "#221414",
+        "BG_INPUT": "#2b1818", "BG_HOVER": "#331e1e",
+        "ACCENT": "#e53935", "ACCENT_HOVER": "#ef5350", "ACCENT_DARK": "#b71c1c",
+        "SUCCESS": "#43a047", "SUCCESS_HOVER": "#66bb6a",
+        "DANGER": "#ff1744", "WARN": "#ff9800",
+        "TEXT_PRIMARY": "#fce4e4", "TEXT_SECONDARY": "#aa7070", "TEXT_MUTED": "#6b3d3d",
+        "BORDER": "#3a1a1a", "BORDER_ACTIVE": "#5c2828", "SCROLLBAR": "#4a2020",
+    },
+    "Ocean": {
+        "BG_DARK": "#050e18", "BG_PANEL": "#0a1828", "BG_CARD": "#0f2035",
+        "BG_INPUT": "#152840", "BG_HOVER": "#1a304d",
+        "ACCENT": "#00bcd4", "ACCENT_HOVER": "#26c6da", "ACCENT_DARK": "#00838f",
+        "SUCCESS": "#26a69a", "SUCCESS_HOVER": "#4db6ac",
+        "DANGER": "#ef5350", "WARN": "#ffb300",
+        "TEXT_PRIMARY": "#e0f7fa", "TEXT_SECONDARY": "#6ba3b8", "TEXT_MUTED": "#2e5f78",
+        "BORDER": "#102030", "BORDER_ACTIVE": "#1e4060", "SCROLLBAR": "#1a3a55",
+    },
+    "Sunset": {
+        "BG_DARK": "#100a05", "BG_PANEL": "#1a1008", "BG_CARD": "#22160a",
+        "BG_INPUT": "#2c1e0e", "BG_HOVER": "#372511",
+        "ACCENT": "#ff6f00", "ACCENT_HOVER": "#ff8f00", "ACCENT_DARK": "#e65100",
+        "SUCCESS": "#66bb6a", "SUCCESS_HOVER": "#81c784",
+        "DANGER": "#f44336", "WARN": "#ffc107",
+        "TEXT_PRIMARY": "#fff3e0", "TEXT_SECONDARY": "#a07850", "TEXT_MUTED": "#6b4a28",
+        "BORDER": "#3a2010", "BORDER_ACTIVE": "#5c3318", "SCROLLBAR": "#4a2c12",
+    },
+    "Neon Purple": {
+        "BG_DARK": "#0a0710", "BG_PANEL": "#100d18", "BG_CARD": "#16121f",
+        "BG_INPUT": "#1e1828", "BG_HOVER": "#251e33",
+        "ACCENT": "#ce93d8", "ACCENT_HOVER": "#e040fb", "ACCENT_DARK": "#7b1fa2",
+        "SUCCESS": "#a5d6a7", "SUCCESS_HOVER": "#c8e6c9",
+        "DANGER": "#ef5350", "WARN": "#ffb74d",
+        "TEXT_PRIMARY": "#f3e5f5", "TEXT_SECONDARY": "#9575cd", "TEXT_MUTED": "#4a3b6e",
+        "BORDER": "#261d38", "BORDER_ACTIVE": "#4527a0", "SCROLLBAR": "#302048",
+    },
+    "Slate Light": {
+        "BG_DARK": "#e8ecf0", "BG_PANEL": "#dde3ea", "BG_CARD": "#f2f5f8",
+        "BG_INPUT": "#ffffff", "BG_HOVER": "#c8d0db",
+        "ACCENT": "#1565c0", "ACCENT_HOVER": "#1976d2", "ACCENT_DARK": "#0d47a1",
+        "SUCCESS": "#2e7d32", "SUCCESS_HOVER": "#388e3c",
+        "DANGER": "#c62828", "WARN": "#ef6c00",
+        "TEXT_PRIMARY": "#1a2035", "TEXT_SECONDARY": "#455a64", "TEXT_MUTED": "#90a4ae",
+        "BORDER": "#b0bec5", "BORDER_ACTIVE": "#78909c", "SCROLLBAR": "#cfd8dc",
+    },
+    "Hacker": {
+        "BG_DARK": "#000000", "BG_PANEL": "#050505", "BG_CARD": "#0a0a0a",
+        "BG_INPUT": "#0f0f0f", "BG_HOVER": "#141414",
+        "ACCENT": "#00ff41", "ACCENT_HOVER": "#39ff6a", "ACCENT_DARK": "#00b32d",
+        "SUCCESS": "#00ff41", "SUCCESS_HOVER": "#39ff6a",
+        "DANGER": "#ff0000", "WARN": "#ffff00",
+        "TEXT_PRIMARY": "#00ff41", "TEXT_SECONDARY": "#009922", "TEXT_MUTED": "#005511",
+        "BORDER": "#003311", "BORDER_ACTIVE": "#00661f", "SCROLLBAR": "#002200",
+    },
+}
+
+THEME_NAMES  = list(THEMES.keys())
+DEFAULT_THEME = "Lunar (Default)"
+
+
+def get_theme(name: str) -> dict:
+    return THEMES.get(name, THEMES[DEFAULT_THEME])
+
+
+def _set_globals(t: dict):
+    """Inject a theme dict into this module's global namespace."""
+    g = globals()
+    for k, v in t.items():
+        g[k] = v
+
+
+def _build_ctk_theme(t: dict) -> dict:
+    return {
+        "CTk":            {"fg_color": [t["BG_DARK"], t["BG_DARK"]]},
+        "CTkFrame":       {"fg_color": [t["BG_PANEL"], t["BG_PANEL"]], "border_color": [t["BORDER"], t["BORDER"]], "corner_radius": 10},
+        "CTkButton":      {"fg_color": [t["ACCENT"], t["ACCENT"]], "hover_color": [t["ACCENT_HOVER"], t["ACCENT_HOVER"]], "text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "border_color": [t["ACCENT_DARK"], t["ACCENT_DARK"]], "corner_radius": 8},
+        "CTkEntry":       {"fg_color": [t["BG_INPUT"], t["BG_INPUT"]], "border_color": [t["BORDER"], t["BORDER"]], "text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "placeholder_text_color": [t["TEXT_MUTED"], t["TEXT_MUTED"]], "corner_radius": 8},
+        "CTkLabel":       {"text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]]},
+        "CTkComboBox":    {"fg_color": [t["BG_INPUT"], t["BG_INPUT"]], "border_color": [t["BORDER"], t["BORDER"]], "button_color": [t["BG_HOVER"], t["BG_HOVER"]], "button_hover_color": [t["ACCENT"], t["ACCENT"]], "dropdown_fg_color": [t["BG_CARD"], t["BG_CARD"]], "text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "dropdown_text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "corner_radius": 8},
+        "CTkScrollbar":   {"fg_color": [t["BG_PANEL"], t["BG_PANEL"]], "button_color": [t["SCROLLBAR"], t["SCROLLBAR"]], "button_hover_color": [t["BORDER_ACTIVE"], t["BORDER_ACTIVE"]], "corner_radius": 4},
+        "CTkTextbox":     {"fg_color": [t["BG_DARK"], t["BG_DARK"]], "border_color": [t["BORDER"], t["BORDER"]], "text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "scrollbar_button_color": [t["SCROLLBAR"], t["SCROLLBAR"]], "corner_radius": 10},
+        "CTkSlider":      {"fg_color": [t["BORDER"], t["BORDER"]], "progress_color": [t["ACCENT"], t["ACCENT"]], "button_color": [t["ACCENT_HOVER"], t["ACCENT_HOVER"]], "button_hover_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "corner_radius": 4},
+        "CTkCheckBox":    {"fg_color": [t["ACCENT"], t["ACCENT"]], "hover_color": [t["ACCENT_HOVER"], t["ACCENT_HOVER"]], "border_color": [t["BORDER_ACTIVE"], t["BORDER_ACTIVE"]], "checkmark_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "corner_radius": 4},
+        "CTkSwitch":      {"fg_color": [t["BORDER"], t["BORDER"]], "progress_color": [t["ACCENT"], t["ACCENT"]], "button_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "button_hover_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]]},
+        "CTkProgressBar": {"fg_color": [t["BG_INPUT"], t["BG_INPUT"]], "progress_color": [t["ACCENT"], t["ACCENT"]], "border_color": [t["BORDER"], t["BORDER"]], "corner_radius": 4},
+        "CTkOptionMenu":  {"fg_color": [t["BG_INPUT"], t["BG_INPUT"]], "button_color": [t["BG_HOVER"], t["BG_HOVER"]], "button_hover_color": [t["ACCENT"], t["ACCENT"]], "dropdown_fg_color": [t["BG_CARD"], t["BG_CARD"]], "text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "dropdown_text_color": [t["TEXT_PRIMARY"], t["TEXT_PRIMARY"]], "corner_radius": 8},
+    }
